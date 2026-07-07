@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SIPP | Sistem Informasi Perencanaan & Penganggaran</title>
+  <meta name="description" content="Sistem Informasi Perencanaan dan Penganggaran (SIPP) Fakultas Vokasi UNY">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css?v=2.3">
+</head>
+
+<body class="not-logged-in">
+
+  <!-- ═══════════════════ LOGIN SCREEN ═══════════════════ -->
+  <div class="login-screen" id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">
+        <span class="logo-sip-large">SIPP</span>
+        <p class="logo-subtitle">Sistem Informasi Perencanaan & Penganggaran</p>
+        <p class="logo-desc">Fakultas Vokasi — Universitas Negeri Yogyakarta</p>
+      </div>
+
+      <div class="login-error" id="login-error" style="display: none;">
+        <i class="fa-solid fa-circle-exclamation"></i> <span id="login-error-text">Username atau password salah.</span>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group-login">
+          <label for="login-username"><i class="fa-solid fa-user"></i> Username</label>
+          <input type="text" id="login-username" placeholder="Username (misal: d4-ts)..." required
+            autocomplete="username">
+        </div>
+        <div class="form-group-login">
+          <label for="login-password"><i class="fa-solid fa-lock"></i> Password</label>
+          <div class="password-input-wrapper">
+            <input type="password" id="login-password" placeholder="Password..." required
+              autocomplete="current-password">
+            <button type="button" id="btn-toggle-password" class="toggle-password-btn"><i
+                class="fa-solid fa-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn-login" id="btn-login-submit">
+          <span>Masuk</span>
+          <i class="fa-solid fa-right-to-bracket"></i>
+        </button>
+      </form>
+
+
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <span class="logo-sip">SIPP</span>
+        <button id="btn-sidebar-close" class="sidebar-close-btn" aria-label="Tutup Menu"><i
+            class="fa-solid fa-xmark"></i></button>
+      </div>
+      <nav class="sidenav">
+        <ul>
+          <li class="nav-item" data-tab="dashboard" id="nav-dashboard">
+            <a href="#"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></a>
+          </li>
+
+          <li class="nav-group" id="nav-rka">
+            <div class="nav-group-header">
+              <i class="fa-solid fa-wallet"></i><span>RKA</span>
+              <i class="fa-solid fa-chevron-down caret"></i>
+            </div>
+            <ul class="nav-sub">
+              <li data-tab="rka-data"><a href="#">Data</a></li>
+              <li data-tab="rka-rpd"><a href="#">RPD</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-group" id="nav-renstra">
+            <div class="nav-group-header">
+              <i class="fa-solid fa-bullseye"></i><span>Renstra</span>
+              <i class="fa-solid fa-chevron-down caret"></i>
+            </div>
+            <ul class="nav-sub">
+              <li data-tab="renstra-tanggung"><a href="#">Tanggung Jawab</a></li>
+              <li data-tab="renstra-capaian"><a href="#">Capaian</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item" data-tab="pembelajaran" id="nav-pembelajaran">
+            <a href="#"><i class="fa-solid fa-graduation-cap"></i><span>Pembelajaran</span></a>
+          </li>
+
+          <!-- HIDDEN: Link Drive Prodi - disembunyikan dari navigasi, kode tetap dipertahankan
+        <li class="nav-item" data-tab="prodi-links" id="nav-prodi-links">
+          <a href="#"><i class="fa-brands fa-google-drive"></i><span>Link Drive Prodi</span></a>
+        </li>
+        -->
+
+          <li class="nav-group" id="nav-transaksi">
+            <div class="nav-group-header">
+              <i class="fa-solid fa-receipt"></i><span>Transaksi</span>
+              <i class="fa-solid fa-chevron-down caret"></i>
+            </div>
+            <ul class="nav-sub">
+              <li data-tab="pembelian"><a href="#">Data Pembelian</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-group admin-only" id="nav-manajemen-prodi-dept">
+            <div class="nav-group-header">
+              <i class="fa-solid fa-building-columns"></i><span>Manajemen Prodi & Dept</span>
+              <i class="fa-solid fa-chevron-down caret"></i>
+            </div>
+            <ul class="nav-sub">
+              <li data-tab="manajemen-prodi"><a href="#">Manajemen Prodi</a></li>
+              <li data-tab="manajemen-departemen"><a href="#">Manajemen Departemen</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item" data-tab="laporan" id="nav-laporan">
+            <a href="#"><i class="fa-solid fa-chart-bar"></i><span>Laporan</span></a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Sidebar Budget Card -->
+      <div class="sidebar-card" id="sidebar-card">
+        <div class="sc-row"><span class="sc-label">Alokasi</span></div>
+        <div class="sc-val" id="sc-alokasi">Memuat...</div>
+        <div class="sc-row mt8"><span class="sc-label">RKA</span></div>
+        <div class="sc-val c-blue" id="sc-rka">Memuat...</div>
+        <div class="sc-row mt8"><span class="sc-label">Selisih</span></div>
+        <div class="sc-val c-red" id="sc-selisih">Memuat...</div>
+        <table class="sc-table">
+          <thead>
+            <tr>
+              <th>Sumber Dana</th>
+              <th>RKA</th>
+            </tr>
+          </thead>
+          <tbody id="sc-sumber-tbody">
+            <tr>
+              <td colspan="2" style="text-align:center;color:var(--muted)">Memuat...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- ═══════════════════ MAIN ═══════════════════ -->
+    <div class="main">
+
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="btn-sidebar-toggle" class="icon-btn"><i class="fa-solid fa-bars"></i></button>
+          <div class="breadcrumb" id="breadcrumb">
+            <i class="fa-solid fa-house"></i>
+            <span id="bc-main">Dashboard</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="user-chip">
+            <div class="user-avatar" id="user-avatar">FV</div>
+            <div>
+              <div class="user-name" id="user-display-name">Fakultas Vokasi</div>
+              <div class="user-role-text" id="user-role-text">Administrator</div>
+            </div>
+          </div>
+          <button id="btn-logout" type="button" class="btn btn-secondary btn-sm" title="Keluar dari Sistem"
+            style="border-radius: 20px; padding: 6px 14px;">
+            <i class="fa-solid fa-right-from-bracket"></i> <span>Logout</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar" id="filter-bar">
+        <div class="filter-row">
+          <div class="fg" id="fg-bulan" style="display:none">
+            <label>Triwulan</label>
+            <select id="flt-bulan" class="flt-select">
+              <option selected>Triwulan 1</option>
+              <option>Triwulan 2</option>
+              <option>Triwulan 3</option>
+              <option>Triwulan 4</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Tahun</label>
+            <select id="flt-tahun" class="flt-select">
+              <option selected>2026</option>
+              <option>2027</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Prodi</label>
+            <select id="flt-unit" class="flt-select wide">
+              <option value="">— Semua Prodi / Vokasi —</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="btn-tampilkan">Tampilkan</button>
+          <div style="margin-left:auto; display:flex; gap:8px; align-items:center;">
+            <button class="btn btn-secondary admin-only" id="btn-import-renstra" style="display:none">
+              <i class="fa-solid fa-file-import"></i> Impor Excel
+            </button>
+            <input type="file" id="input-import-renstra" accept=".xlsx, .xls" style="display:none">
+            <button class="btn btn-success" id="btn-export-renstra" style="display:none">
+              <i class="fa-solid fa-file-export"></i> Download Excel
+            </button>
+            <button class="btn btn-success admin-only" id="btn-add-main" style="display:none">
+              <i class="fa-solid fa-plus"></i> <span id="btn-add-label">Tambah</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content" id="content">
+
+        <!-- ── DASHBOARD ─────────────────────────────────────── -->
+        <div class="view" id="view-dashboard">
+          <div class="dash-banner">
+            <div class="dash-banner-text">
+              <h2>Sistem Informasi Perencanaan & Penganggaran (SIPP)</h2>
+              <p>Fakultas Vokasi — Universitas Negeri Yogyakarta | TA 2026</p>
+            </div>
+            <div class="dash-banner-icon"><i class="fa-solid fa-university"></i></div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon si-blue"><i class="fa-solid fa-money-bill-wave"></i></div>
+              <div>
+                <div class="stat-label">Total Anggaran RKA</div>
+                <div class="stat-val" id="ds-total-rka">Memuat...</div>
+              </div>
+            </div>
+            <div class="stat-card" style="display: none;">
+              <div class="stat-icon si-green"><i class="fa-solid fa-folder-open"></i></div>
+              <div>
+                <div class="stat-label">Prodi Dengan Link Drive</div>
+                <div class="stat-val" id="ds-prodi-linked">0 / 7 Prodi</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon si-purple"><i class="fa-solid fa-cart-shopping"></i></div>
+              <div>
+                <div class="stat-label">Total Belanja Barang</div>
+                <div class="stat-val" id="ds-total-purchases">-</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-box">
+            <h3><i class="fa-solid fa-circle-info"></i> Panduan Sistem Berkas</h3>
+            <ul>
+              <!-- Sementara di revisi, disembunyikan
+              <li><i class="fa-brands fa-google-drive c-green"></i> <strong>Semua berkas menggunakan Link Google
+                  Drive</strong> — tidak ada unggah file lokal.</li>
+              <li><i class="fa-solid fa-folder-tree c-blue"></i> Setiap Prodi mengisi <strong>7 link Drive
+                  standar</strong>: Perjanjian Kinerja, Template Kinerja, TW1, TW2, Bukti Dukung TW1, Bukti Lama, Contoh
+                Target.</li>
+              <li><i class="fa-solid fa-database c-purple"></i> Klik ikon <strong>Data Dukung</strong> di tabel untuk
+                menambah atau melihat link Drive berkas pendukung.</li>
+              <li><i class="fa-solid fa-lock"></i> <strong>USER</strong> hanya bisa melihat data. <strong>ADMIN</strong>
+                dapat menambah, mengedit, dan menghapus data.</li>
+              -->
+              <li>~</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- ── RKA DATA ──────────────────────────────────────── -->
+        <div class="view" id="view-rka-data" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Data Perencanaan RKA</h2>
+              <p class="sub-text" id="sub-rka-data">Periode: Tahun 2026</p>
+            </div>
+          </div>
+          <div class="tbl-wrap" id="wrap-rka-data">
+            <table class="htable" id="tbl-rka-data">
+              <thead>
+                <tr>
+                  <th style="width:100px" class="text-left">Kode</th>
+                  <th class="text-left">Uraian</th>
+                  <th style="width:100px" class="text-center">Volume</th>
+                  <th style="width:130px" class="text-right">Harga Satuan</th>
+                  <th style="width:130px" class="text-right">Jumlah</th>
+                  <th style="width:120px" class="text-center">Sumber Dana</th>
+                  <th style="width:130px" class="text-right">Insentif Kinerja</th>
+                  <th style="width:150px" class="text-center">Kuitansi / Link Drive</th>
+                  <th style="width:100px" class="admin-only text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-rka-data"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── RKA RPD ───────────────────────────────────────── -->
+        <div class="view" id="view-rka-rpd" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Rencana Penarikan Dana (RPD) Bulanan</h2>
+              <p class="sub-text" id="sub-rka-rpd">Periode: Tahun 2026</p>
+            </div>
+          </div>
+          <div class="tbl-wrap tbl-scroll" id="wrap-rka-rpd">
+            <table class="htable" id="tbl-rka-rpd">
+              <thead>
+                <tr>
+                  <th style="min-width:100px" class="text-left">Kode</th>
+                  <th style="min-width:260px" class="text-left">Uraian</th>
+                  <th class="text-right">Jan</th>
+                  <th class="text-right">Feb</th>
+                  <th class="text-right">Mar</th>
+                  <th class="text-right">Apr</th>
+                  <th class="text-right">Mei</th>
+                  <th class="text-right">Jun</th>
+                  <th class="text-right">Jul</th>
+                  <th class="text-right">Agt</th>
+                  <th class="text-right">Sep</th>
+                  <th class="text-right">Okt</th>
+                  <th class="text-right">Nov</th>
+                  <th class="text-right">Des</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-rka-rpd"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── RENSTRA TANGGUNG JAWAB ─────────────────────────── -->
+        <div class="view" id="view-renstra-tanggung" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Renstra - Tanggung Jawab</h2>
+              <p class="sub-text" id="sub-renstra-tj">Periode: Tahun 2026</p>
+            </div>
+          </div>
+          <div class="tbl-wrap tbl-scroll">
+            <table class="htable" id="tbl-renstra-tj">
+              <thead>
+                <tr>
+                  <th style="min-width:400px" class="text-left">Uraian</th>
+                  <th style="width:80px" class="text-left">Kode</th>
+                  <th style="width:80px" class="text-center">Satuan</th>
+                  <th style="width:120px" class="text-center">Target Fakultas</th>
+                  <th style="width:120px" class="text-center">Target Unit</th>
+                  <th style="width:140px" class="text-right">Jumlah Anggaran</th>
+                  <th style="width:80px" class="text-center">Kegiatan</th>
+                  <th style="width:100px" class="admin-only text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-renstra-tj"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── RENSTRA CAPAIAN ───────────────────────────────── -->
+        <div class="view" id="view-renstra-capaian" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Renstra - Capaian</h2>
+              <p class="sub-text" id="sub-renstra-capaian">Periode: Tahun 2026</p>
+            </div>
+          </div>
+          <div class="tbl-wrap tbl-scroll">
+            <table class="htable" id="tbl-renstra-capaian">
+              <thead>
+                <tr>
+                  <th style="min-width:400px" class="text-left">Uraian</th>
+                  <th style="width:80px" class="text-left">Kode</th>
+                  <th style="width:80px" class="text-center">Satuan</th>
+                  <th style="width:130px" class="text-center">Target Fakultas</th>
+                  <th style="width:130px" class="text-center">Target Unit</th>
+                  <th style="width:60px;" class="text-center">Aksi</th>
+                  <th style="width:130px" class="text-center">Data Pendukung</th>
+                  <th style="width:90px" class="text-center">Capaian</th>
+                  <th style="width:90px" class="text-center">Capaian %</th>
+                  <th class="text-left">Progress/Kegiatan</th>
+                  <th class="text-left">Kendala/Permasalahan</th>
+                  <th class="text-left">Strategi/Tindak lanjut</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-renstra-capaian"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── PEMBELAJARAN ──────────────────────────────────── -->
+        <div class="view" id="view-pembelajaran" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Capaian Pembelajaran Lulusan (CPL)</h2>
+              <p class="sub-text" id="sub-pembelajaran">Periode: Tahun 2026</p>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="htable" id="tbl-pembelajaran">
+              <thead>
+                <tr>
+                  <th style="width:80px" class="text-left">Kode</th>
+                  <th style="min-width:400px" class="text-left">Capaian Pembelajaran Lulusan (CPL)</th>
+                  <th style="width:120px" class="text-center">Target Unit</th>
+                  <th style="width:100px" class="text-center">Capaian</th>
+                  <th style="width:100px" class="text-center">Capaian %</th>
+                  <th style="min-width:180px" class="text-left">Progress/Keterangan</th>
+                  <th style="width:130px" class="text-center">Data Dukung</th>
+                  <th style="width:100px" class="text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-pembelajaran"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── PRODI DRIVE LINKS (7 folder) ─────────────────── -->
+        <div class="view" id="view-prodi-links" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Link Google Drive Per Prodi</h2>
+              <p class="sub-text">Setiap prodi mengisi 7 folder link Drive standar yang telah ditetapkan.</p>
+            </div>
+            <button class="btn btn-success admin-only" id="btn-add-prodi">
+              <i class="fa-solid fa-plus"></i> Tambah Prodi
+            </button>
+          </div>
+
+          <!-- 7 Folder Labels Reference -->
+          <div class="drive-folders-ref">
+            <div class="dfr-title"><i class="fa-brands fa-google-drive"></i> Struktur 7 Folder Google Drive Standar:
+            </div>
+            <div class="dfr-list">
+              <span class="folder-badge"><i class="fa-solid fa-folder"></i> 1. PERJANJIAN KINERJA PRODI</span>
+              <span class="folder-badge"><i class="fa-solid fa-folder"></i> 2. Template Kinerja Prodi</span>
+              <span class="folder-badge"><i class="fa-solid fa-folder"></i> 3. TW1 (Januari-Maret 2026)</span>
+              <span class="folder-badge"><i class="fa-solid fa-folder"></i> 4. TW 2 (April-Juni 2026)</span>
+              <span class="folder-badge"><i class="fa-solid fa-folder"></i> 5. Bukti dukung kinerja prodi TW 1</span>
+              <span class="folder-badge"><i class="fa-solid fa-folder"></i> 6. Bukti lama</span>
+              <span class="folder-badge"><i class="fa-solid fa-folder"></i> 7. Contoh target capaian prodi</span>
+            </div>
+          </div>
+
+          <div class="prodi-cards" id="prodi-cards">
+            <!-- JS Populated -->
+          </div>
+        </div>
+
+        <!-- ── PEMBELIAN ─────────────────────────────────────── -->
+        <div class="view" id="view-pembelian" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2>Data Pembelian Barang & Pengadaan</h2>
+              <p class="sub-text">Seluruh dokumentasi pembelian dikonsolidasikan dalam satu Link Google Drive per
+                transaksi.</p>
+            </div>
+            <button class="btn btn-success" id="btn-add-pembelian">
+              <i class="fa-solid fa-plus"></i> Tambah Pembelian
+            </button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="ftable" id="tbl-pembelian">
+              <thead>
+                <tr>
+                  <th style="width:50px" class="text-center">No</th>
+                  <th style="min-width:300px" class="text-left">Nama Barang / Pengadaan</th>
+                  <th style="width:60px" class="text-center">Qty</th>
+                  <th style="width:130px" class="text-right">Harga Satuan</th>
+                  <th style="width:130px" class="text-right">Total Dana</th>
+                  <th style="width:100px" class="text-center">Prodi</th>
+                  <th style="width:150px" class="text-center">Dokumentasi (Link Drive)</th>
+                  <th class="text-left">Keterangan</th>
+                  <th style="width:120px" class="text-center">Tanggal</th>
+                  <th style="width:100px" class="text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-pembelian"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── MANAJEMEN PRODI (Admin Only) ────────────────────── -->
+        <div class="view" id="view-manajemen-prodi" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2><i class="fa-solid fa-graduation-cap"></i> Manajemen Program Studi</h2>
+              <p class="sub-text">Kelola data Program Studi (Prodi) — Hanya Admin</p>
+            </div>
+            <button class="btn btn-success admin-only" id="btn-add-mprodi">
+              <i class="fa-solid fa-plus"></i> Tambah Prodi
+            </button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="ftable" id="tbl-manajemen-prodi">
+              <thead>
+                <tr>
+                  <th class="text-center">No</th>
+                  <th class="text-left">Kode Prodi</th>
+                  <th class="text-left">Nama Program Studi</th>
+                  <th class="text-left">Departemen</th>
+                  <th class="text-left">Keterangan</th>
+                  <th class="text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-manajemen-prodi"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── MANAJEMEN DEPARTEMEN (Admin Only) ───────────────── -->
+        <div class="view" id="view-manajemen-departemen" style="display:none">
+          <div class="section-head">
+            <div>
+              <h2><i class="fa-solid fa-building-columns"></i> Manajemen Departemen</h2>
+              <p class="sub-text">Kelola data Departemen — Hanya Admin</p>
+            </div>
+            <button class="btn btn-success admin-only" id="btn-add-mdept">
+              <i class="fa-solid fa-plus"></i> Tambah Departemen
+            </button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="ftable" id="tbl-manajemen-dept">
+              <thead>
+                <tr>
+                  <th class="text-center">No</th>
+                  <th class="text-left">Kode Departemen</th>
+                  <th class="text-left">Nama Departemen</th>
+                  <th class="text-center">Jumlah Prodi</th>
+                  <th class="text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-manajemen-dept"></tbody>
+            </table>
+          </div>
+        </div>
+
+
+        <!-- ── LAPORAN ───────────────────────────────────────── -->
+        <div class="view" id="view-laporan" style="display:none">
+          <div class="dash-banner">
+            <div class="dash-banner-text">
+              <h2><i class="fa-solid fa-chart-bar"></i> Laporan Realisasi Anggaran</h2>
+              <p>Ringkasan laporan keuangan dan penyerapan anggaran Tahun 2026</p>
+            </div>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon si-blue"><i class="fa-solid fa-money-check"></i></div>
+              <div>
+                <div class="stat-label">Pagu Anggaran</div>
+                <div class="stat-val" id="lap-pagu">Memuat...</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon si-green"><i class="fa-solid fa-circle-check"></i></div>
+              <div>
+                <div class="stat-label">Realisasi</div>
+                <div class="stat-val" id="lap-realisasi">Memuat...</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon si-orange"><i class="fa-solid fa-hourglass-half"></i></div>
+              <div>
+                <div class="stat-label">Sisa Anggaran</div>
+                <div class="stat-val" id="lap-sisa">Memuat...</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon si-purple"><i class="fa-solid fa-percent"></i></div>
+              <div>
+                <div class="stat-label">Persentase Realisasi</div>
+                <div class="stat-val" id="lap-persen">Memuat...</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tbl-wrap" style="margin-top:24px">
+            <table class="ftable" id="tbl-laporan">
+              <thead>
+                <tr>
+                  <th class="text-left">Sumber Dana</th>
+                  <th class="text-right">Pagu</th>
+                  <th class="text-right">Realisasi</th>
+                  <th class="text-right">Sisa</th>
+                  <th class="text-center">%</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-laporan"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /layout -->
+
+  <!-- ═══════════════════ MODALS ═══════════════════════════════════════ -->
+
+  <!-- Modal: Data Dukung (Drive Link) -->
+  <div class="modal" id="modal-dukung">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <h3><i class="fa-brands fa-google-drive"></i> Data Pendukung</h3>
+        <button class="close-x" data-close="modal-dukung">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert-warn">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <strong>tambahkan link drive saja</strong> — Upload file lokal tidak diizinkan dalam sistem ini.
+        </div>
+        <input type="hidden" id="dd-item-id">
+        <input type="hidden" id="dd-field">
+        <div class="fg">
+          <label>Link Google Drive <span class="req">*</span></label>
+          <div class="input-icon">
+            <i class="fa-brands fa-google-drive c-green"></i>
+            <input type="url" id="dd-link" placeholder="https://drive.google.com/..." autocomplete="off">
+          </div>
+          <small>Pastikan izin akses link Drive diatur ke <em>"Anyone with the link"</em>.</small>
+        </div>
+        <div id="dd-current" class="current-link" style="display:none">
+          <i class="fa-solid fa-link"></i> Link saat ini: <a id="dd-current-a" href="#" target="_blank">Lihat</a>
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-secondary" data-close="modal-dukung">Batal</button>
+        <button class="btn btn-success admin-only" id="btn-save-dukung"><i class="fa-solid fa-save"></i> Simpan
+          Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Tambah/Edit Item RKA/Pembelajaran -->
+  <div class="modal" id="modal-item">
+    <div class="modal-box modal-lg">
+      <div class="modal-hdr">
+        <h3 id="modal-item-title"><i class="fa-solid fa-plus-circle"></i> Tambah Item</h3>
+        <button class="close-x" data-close="modal-item">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="mi-id">
+        <input type="hidden" id="mi-type" value="keuangan_rka">
+
+        <div class="form-grid-2">
+          <div class="fg">
+            <label>Tingkat/Level <span class="req">*</span></label>
+            <select id="mi-level" class="flt-select">
+              <option value="1">Level 1 — Menu Utama</option>
+              <option value="2">Level 2 — Menu Tambahan</option>
+              <option value="3">Level 3 — Menu Pendukung</option>
+              <option value="4">Level 4 — Sub Pendukung</option>
+              <option value="5">Level 5</option>
+              <option value="6">Level 6</option>
+              <option value="7">Level 7</option>
+              <option value="8">Level 8</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Item Induk (Parent)</label>
+            <select id="mi-parent" class="flt-select">
+              <option value="">— Tanpa Induk (Root) —</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Prodi Penanggung Jawab (Hanya untuk Level 1 / Admin) -->
+        <div class="fg" id="fg-mi-prodi" style="display: none; margin-bottom: 15px;">
+          <label>Prodi Penanggung Jawab</label>
+          <select id="mi-prodi-code" class="flt-select">
+            <option value="">— Fakultas / Umum —</option>
+          </select>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="fg">
+            <label>Kode <span class="req">*</span></label>
+            <input type="number" id="mi-code" placeholder="Contoh: 5220101">
+          </div>
+          <div class="fg">
+            <label>Uraian/Deskripsi <span class="req">*</span></label>
+            <input type="text" id="mi-desc" placeholder="Nama kegiatan atau program">
+          </div>
+        </div>
+
+        <!-- Keuangan Fields -->
+        <div id="fi-keuangan">
+          <div class="form-grid-3">
+            <div class="fg"><label>Volume</label><input type="number" id="mi-volume" placeholder="0"></div>
+            <div class="fg"><label>Satuan</label><input type="text" id="mi-unit" placeholder="Prodi / Unit / Kali">
+            </div>
+            <div class="fg"><label>Harga Satuan (Rp)</label><input type="number" id="mi-price" placeholder="0"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="fg">
+              <label>Sumber Dana</label>
+              <select id="mi-source" class="flt-select">
+                <!-- Dinamis via JS -->
+              </select>
+              <!-- Input Sumber Dana Kustom -->
+              <div id="fg-mi-source-custom" style="display: none; margin-top: 8px;">
+                <input type="text" id="mi-source-custom" class="flt-select" placeholder="Ketik Sumber Dana Baru..."
+                  style="background-color: #fffbeb; border: 1px solid #fcd34d;">
+              </div>
+            </div>
+            <div class="fg"><label>Insentif Kinerja</label><input type="number" id="mi-incentive" placeholder="0"></div>
+          </div>
+          <div class="fg">
+            <label>Kuitansi / Bukti Pembelian (Link Drive)</label>
+            <div class="input-icon">
+              <i class="fa-brands fa-google-drive c-green"></i>
+              <input type="url" id="mi-receipt" placeholder="https://drive.google.com/...">
+            </div>
+            <small>Pengadaan barang/dana dijadikan satu file — link drive saja.</small>
+          </div>
+          <!-- RPD Bulanan Section -->
+          <div style="margin-top: 15px; border-top: 1px dashed var(--border); padding-top: 15px;">
+            <h4 style="margin-bottom: 10px; color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> Rencana
+              Penarikan Dana (RPD) Bulanan</h4>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-bottom: 13px;">
+              <div class="fg"><label>Januari (Rp)</label><input type="number" id="mi-jan" placeholder="0"></div>
+              <div class="fg"><label>Februari (Rp)</label><input type="number" id="mi-feb" placeholder="0"></div>
+              <div class="fg"><label>Maret (Rp)</label><input type="number" id="mi-mar" placeholder="0"></div>
+              <div class="fg"><label>April (Rp)</label><input type="number" id="mi-apr" placeholder="0"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-bottom: 13px;">
+              <div class="fg"><label>Mei (Rp)</label><input type="number" id="mi-mei" placeholder="0"></div>
+              <div class="fg"><label>Juni (Rp)</label><input type="number" id="mi-jun" placeholder="0"></div>
+              <div class="fg"><label>Juli (Rp)</label><input type="number" id="mi-jul" placeholder="0"></div>
+              <div class="fg"><label>Agustus (Rp)</label><input type="number" id="mi-aug" placeholder="0"></div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-bottom: 13px;">
+              <div class="fg"><label>September (Rp)</label><input type="number" id="mi-sep" placeholder="0"></div>
+              <div class="fg"><label>Oktober (Rp)</label><input type="number" id="mi-oct" placeholder="0"></div>
+              <div class="fg"><label>November (Rp)</label><input type="number" id="mi-nov" placeholder="0"></div>
+              <div class="fg"><label>Desember (Rp)</label><input type="number" id="mi-dec" placeholder="0"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Renstra Fields -->
+        <div id="fi-renstra" style="display:none">
+          <div class="form-grid-3">
+            <div class="fg"><label>Satuan</label><input type="text" id="mi-r-satuan" placeholder="Contoh: % / Dokumen">
+            </div>
+            <div class="fg"><label>Target Fakultas</label><input type="text" id="mi-r-tuniv" placeholder="Contoh: 75%">
+            </div>
+            <div class="fg"><label>Target Unit (Prodi)</label><input type="text" id="mi-r-tunit"
+                placeholder="Contoh: 75%"></div>
+          </div>
+          <div class="fg">
+            <label>Anggaran (Rp)</label><input type="number" id="mi-r-anggaran" placeholder="0">
+            <small>Isi khusus untuk Kegiatan (Level 4)</small>
+          </div>
+        </div>
+
+        <!-- Pembelajaran Fields -->
+        <div id="fi-pembelajaran" style="display:none">
+          <div class="form-grid-2">
+            <div class="fg"><label>Target Unit (Prodi/Fak)</label><input type="text" id="mi-p-tunit"
+                placeholder="Contoh: 75%"></div>
+            <div class="fg"><label>Capaian</label><input type="text" id="mi-p-capaian" placeholder="0%"></div>
+          </div>
+          <div class="form-grid-2">
+            <div class="fg"><label>Capaian % (Persentase)</label><input type="text" id="mi-p-capaian-pct"
+                placeholder="Contoh: 80%"></div>
+            <div class="fg"><label>Progress/Kegiatan</label><input type="text" id="mi-p-progress"
+                placeholder="Deskripsi progress"></div>
+          </div>
+        </div>
+
+        <div class="fg" style="margin-top:12px">
+          <label>Data Dukung (Link Drive)</label>
+          <div class="input-icon">
+            <i class="fa-brands fa-google-drive c-green"></i>
+            <input type="url" id="mi-dukung" placeholder="https://drive.google.com/...">
+          </div>
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-secondary" data-close="modal-item">Batal</button>
+        <button class="btn btn-primary" id="btn-save-item"><i class="fa-solid fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Edit Capaian Renstra (Triwulan) -->
+  <div class="modal" id="modal-capaian-renstra">
+    <div class="modal-box modal-lg">
+      <div class="modal-hdr" style="background: #701a75; color: white;">
+        <h3 id="modal-cr-title" style="color: white; margin: 0; font-size: 1.25rem;"><i class="fa-solid fa-pen-to-square"></i> Capaian</h3>
+        <button class="close-x" data-close="modal-capaian-renstra" style="color: white;">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="mcr-item-id">
+        
+        <table class="capaian-target-table" style="width: 100%; border-collapse: collapse; margin-bottom: 15px; border: 1px solid #e2e8f0; font-size: 0.9rem;">
+          <tr style="border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+            <td style="padding: 10px; font-weight: bold; width: 30%; color: #334155;">Target Universitas</td>
+            <td style="padding: 10px; color: #334155;" id="mcr-target-univ">-</td>
+          </tr>
+          <tr style="background: #f8fafc;">
+            <td style="padding: 10px; font-weight: bold; color: #334155;">Target Unit Kerja</td>
+            <td style="padding: 10px; color: #334155;" id="mcr-target-unit">-</td>
+          </tr>
+        </table>
+
+        <div class="fg" style="margin-bottom: 15px;">
+          <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">Capaian</label>
+          <input type="text" id="mcr-capaian" class="flt-select" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%;" placeholder="0">
+          <small style="color: #64748b; display: block; margin-top: 6px; font-size: 0.8rem; line-height: 1.4;">
+            Isikan tanpa menuliskan satuannya, misalnya <strong>100</strong> atau <strong>25</strong>, jangan ditulis <strong>100 mhs</strong> atau <strong>25%</strong>.<br>
+            Untuk isian berupa angka, isikan tanpa pemisah ribuan. Misalnya <strong>2500</strong> jangan ditulis <strong>2.500</strong>.<br>
+            Untuk isian berupa rasio, tuliskan lengkap dengan tanda : misalnya <strong>1:20</strong>.
+          </small>
+        </div>
+
+        <div class="fg" style="margin-bottom: 15px;">
+          <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">Progress/Kegiatan</label>
+          <textarea id="mcr-progress" rows="4" class="flt-select" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; resize: vertical;" placeholder="Tulis progress kegiatan disini..."></textarea>
+        </div>
+
+        <div class="fg" style="margin-bottom: 15px;">
+          <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">Kendala/Permasalahan</label>
+          <textarea id="mcr-issues" rows="4" class="flt-select" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; resize: vertical;" placeholder="Tulis kendala/masalah disini..."></textarea>
+        </div>
+
+        <div class="fg" style="margin-bottom: 15px;">
+          <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">Strategi/Tindak Lanjut</label>
+          <textarea id="mcr-strategy" rows="4" class="flt-select" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; resize: vertical;" placeholder="Tulis rencana penyelesaian disini..."></textarea>
+        </div>
+
+        <div class="fg" style="margin-bottom: 15px;">
+          <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">Data Dukung (Google Drive Link)</label>
+          <input type="url" id="mcr-dukung" class="flt-select" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%;" placeholder="https://drive.google.com/...">
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-secondary" data-close="modal-capaian-renstra">Batal</button>
+        <button class="btn btn-primary" id="btn-save-capaian-renstra" style="background: #0284c7; border-color: #0284c7;"><i class="fa-solid fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Tambah/Edit Prodi Drive Links -->
+  <div class="modal" id="modal-prodi">
+    <div class="modal-box modal-lg">
+      <div class="modal-hdr">
+        <h3 id="modal-prodi-title"><i class="fa-brands fa-google-drive"></i> Pengisian Link Drive Prodi</h3>
+        <button class="close-x" data-close="modal-prodi">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert-warn">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          Setiap prodi mengisi <strong>7 link Google Drive</strong> sesuai folder standar yang telah ditetapkan. Tidak
+          ada unggah file lokal.
+        </div>
+        <input type="hidden" id="mp-id">
+        <div class="form-grid-2">
+          <div class="fg"><label>Nama Program Studi <span class="req">*</span></label>
+            <input type="text" id="mp-name" placeholder="D4 Teknik Elektro">
+          </div>
+          <div class="fg"><label>Kode Prodi <span class="req">*</span></label>
+            <input type="text" id="mp-code" placeholder="D4-TE">
+          </div>
+        </div>
+
+        <div class="drive-links-form">
+          <div class="dlf-header"><i class="fa-brands fa-google-drive"></i> 7 Link Google Drive Standar Prodi</div>
+
+          <div class="fg dlf-item">
+            <label><span class="folder-num">1</span> PERJANJIAN KINERJA PRODI</label>
+            <div class="input-icon"><i class="fa-brands fa-google-drive c-green"></i>
+              <input type="url" id="mp-l0" placeholder="https://drive.google.com/drive/folders/...">
+            </div>
+          </div>
+          <div class="fg dlf-item">
+            <label><span class="folder-num">2</span> Template Kinerja Prodi</label>
+            <div class="input-icon"><i class="fa-brands fa-google-drive c-green"></i>
+              <input type="url" id="mp-l1" placeholder="https://drive.google.com/drive/folders/...">
+            </div>
+          </div>
+          <div class="fg dlf-item">
+            <label><span class="folder-num">3</span> TW1 (Januari - Maret 2026)</label>
+            <div class="input-icon"><i class="fa-brands fa-google-drive c-green"></i>
+              <input type="url" id="mp-l2" placeholder="https://drive.google.com/drive/folders/...">
+            </div>
+          </div>
+          <div class="fg dlf-item">
+            <label><span class="folder-num">4</span> TW 2 (April - Juni 2026)</label>
+            <div class="input-icon"><i class="fa-brands fa-google-drive c-green"></i>
+              <input type="url" id="mp-l3" placeholder="https://drive.google.com/drive/folders/...">
+            </div>
+          </div>
+          <div class="fg dlf-item">
+            <label><span class="folder-num">5</span> Bukti dukung kinerja prodi TW 1</label>
+            <div class="input-icon"><i class="fa-brands fa-google-drive c-green"></i>
+              <input type="url" id="mp-l4" placeholder="https://drive.google.com/drive/folders/...">
+            </div>
+          </div>
+          <div class="fg dlf-item">
+            <label><span class="folder-num">6</span> Bukti lama</label>
+            <div class="input-icon"><i class="fa-brands fa-google-drive c-green"></i>
+              <input type="url" id="mp-l5" placeholder="https://drive.google.com/drive/folders/...">
+            </div>
+          </div>
+          <div class="fg dlf-item">
+            <label><span class="folder-num">7</span> Contoh target capaian prodi</label>
+            <div class="input-icon"><i class="fa-brands fa-google-drive c-green"></i>
+              <input type="url" id="mp-l6" placeholder="https://drive.google.com/drive/folders/...">
+            </div>
+          </div>
+        </div>
+
+        <div class="fg" style="margin-top:12px">
+          <label>Keterangan Tambahan</label>
+          <input type="text" id="mp-ket" placeholder="Opsional...">
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-secondary" data-close="modal-prodi">Batal</button>
+        <button class="btn btn-primary" id="btn-save-prodi"><i class="fa-solid fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Tambah Pembelian -->
+  <div class="modal" id="modal-pembelian">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <h3 id="modal-pembelian-title"><i class="fa-solid fa-cart-plus"></i> Tambah Data Pembelian</h3>
+        <button class="close-x" data-close="modal-pembelian">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="pb-id">
+        <div class="alert-warn">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <strong>Sekecil apapun dokumentasi pembelian dijadikan satu file — tambahkan link drive saja.</strong>
+        </div>
+        <div class="fg"><label>Nama Barang / Pengadaan / Dana <span class="req">*</span></label>
+          <input type="text" id="pb-name" placeholder="Contoh: Belanja Bahan Praktikum Las Listrik">
+        </div>
+        <div class="fg">
+          <label>Program Studi (Prodi)</label>
+          <select id="pb-prodi-code" class="flt-select">
+            <option value="">— Fakultas / Umum —</option>
+          </select>
+        </div>
+        <div class="form-grid-2">
+          <div class="fg"><label>Kuantitas <span class="req">*</span></label>
+            <input type="number" id="pb-qty" placeholder="1" min="1">
+          </div>
+          <div class="fg"><label>Harga Satuan (Rp) <span class="req">*</span></label>
+            <input type="number" id="pb-price" placeholder="0">
+          </div>
+        </div>
+        <div class="fg"><label>Dokumentasi Pembelian (Link Google Drive) <span class="req">*</span></label>
+          <div class="input-icon"><i class="fa-brands fa-google-drive c-green"></i>
+            <input type="url" id="pb-link" placeholder="https://drive.google.com/...">
+          </div>
+          <small>Kuitansi, nota, dan semua bukti pembelian dijadikan 1 file di Google Drive.</small>
+        </div>
+        <div class="fg"><label>Keterangan</label>
+          <input type="text" id="pb-ket" placeholder="Opsional...">
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-secondary" data-close="modal-pembelian">Batal</button>
+        <button class="btn btn-success" id="btn-save-pembelian"><i class="fa-solid fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Tambah/Edit Prodi (Manajemen) -->
+  <div class="modal" id="modal-mprodi">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <h3 id="modal-mprodi-title"><i class="fa-solid fa-graduation-cap"></i> Tambah Prodi</h3>
+        <button class="close-x" data-close="modal-mprodi">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="mprodi-id">
+        <div class="fg">
+          <label>Kode Prodi <span class="req">*</span></label>
+          <input type="text" id="mprodi-code" placeholder="Contoh: D4-TE">
+        </div>
+        <div class="fg">
+          <label>Nama Program Studi <span class="req">*</span></label>
+          <input type="text" id="mprodi-name" placeholder="Contoh: D4 Teknik Elektro">
+        </div>
+        <div class="fg">
+          <label>Departemen</label>
+          <select id="mprodi-dept" class="flt-select">
+            <option value="">— Tidak Ada / Belum Ditentukan —</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Keterangan</label>
+          <input type="text" id="mprodi-ket" placeholder="Opsional...">
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-secondary" data-close="modal-mprodi">Batal</button>
+        <button class="btn btn-primary" id="btn-save-mprodi"><i class="fa-solid fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Tambah/Edit Departemen -->
+  <div class="modal" id="modal-mdept">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <h3 id="modal-mdept-title"><i class="fa-solid fa-building-columns"></i> Tambah Departemen</h3>
+        <button class="close-x" data-close="modal-mdept">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="mdept-id">
+        <div class="fg">
+          <label>Kode Departemen <span class="req">*</span></label>
+          <input type="text" id="mdept-code" placeholder="Contoh: DEPT-TE">
+        </div>
+        <div class="fg">
+          <label>Nama Departemen <span class="req">*</span></label>
+          <input type="text" id="mdept-name" placeholder="Contoh: Departemen Teknik Elektro">
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-secondary" data-close="modal-mdept">Batal</button>
+        <button class="btn btn-primary" id="btn-save-mdept"><i class="fa-solid fa-save"></i> Simpan</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Modal: Renstra Kegiatan (Level 4) -->
+  <div class="modal" id="modal-renstra-kegiatan">
+    <div class="modal-box modal-lg">
+      <div class="modal-hdr">
+        <h3 id="modal-rk-title"><i class="fa-solid fa-list-check"></i> Daftar Kegiatan</h3>
+        <button class="close-x" data-close="modal-renstra-kegiatan">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="tbl-wrap">
+          <table class="htable">
+            <thead>
+              <tr>
+                <th style="width: 50px;">No</th>
+                <th>Nama Kegiatan</th>
+                <th style="width: 150px; text-align: right;">Anggaran (Rp)</th>
+                <th style="width: 200px; text-align: center;">Data Dukung</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-renstra-kegiatan">
+              <!-- Loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-ftr">
+        <button class="btn btn-secondary" data-close="modal-renstra-kegiatan">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="app.js?v=2.1"></script>
+</body>
+
+</html>
