@@ -552,11 +552,12 @@ export function SippApp() {
       });
       return;
     }
-    if (!mcrDukung.trim()) {
+
+    if (!mcrCapaian.trim() || !mcrProgress.trim() || !mcrIssues.trim() || !mcrStrategy.trim() || !mcrDukung.trim()) {
       Swal.fire({
         icon: 'warning',
-        title: 'Input Data Dukung',
-        text: 'Data Dukung (Link Google Drive) wajib diisi sebelum menyimpan.',
+        title: 'Form Belum Lengkap',
+        text: 'Pastikan seluruh isian (Capaian, Progress, Kendala, Strategi, Data Dukung) sudah terisi semua.',
         confirmButtonColor: '#0072ff'
       });
       return;
@@ -1503,13 +1504,13 @@ export function SippApp() {
       {activeModal === 'capaian-renstra' && (
         <div className="modal open" id="modal-capaian-renstra">
           <div className="modal-box modal-lg">
-            <div className="modal-hdr" style={{ background: '#701a75', color: 'white' }}>
-              <h3 style={{ color: 'white' }}><i className="fa-solid fa-pen-to-square"></i> Capaian Renstra</h3>
-              <button className="close-x" style={{ color: 'white' }} onClick={() => setActiveModal(null)}>&times;</button>
+            <div className="modal-hdr">
+              <h3><i className="fa-solid fa-pen-to-square"></i> Capaian Renstra</h3>
+              <button className="close-x" onClick={() => setActiveModal(null)}>&times;</button>
             </div>
             <div className="modal-body">
               <div className="fg" style={{ marginBottom: '15px' }}>
-                <label>Capaian</label>
+                <label>Capaian <span className="req">*</span></label>
                 <input 
                   type="text" 
                   value={mcrCapaian}
@@ -1518,7 +1519,7 @@ export function SippApp() {
                 />
               </div>
               <div className="fg" style={{ marginBottom: '15px' }}>
-                <label>Progress/Kegiatan</label>
+                <label>Progress/Kegiatan <span className="req">*</span></label>
                 <textarea 
                   rows={4}
                   value={mcrProgress}
@@ -1527,7 +1528,7 @@ export function SippApp() {
                 />
               </div>
               <div className="fg" style={{ marginBottom: '15px' }}>
-                <label>Kendala/Permasalahan</label>
+                <label>Kendala/Permasalahan <span className="req">*</span></label>
                 <textarea 
                   rows={4}
                   value={mcrIssues}
@@ -1536,7 +1537,7 @@ export function SippApp() {
                 />
               </div>
               <div className="fg" style={{ marginBottom: '15px' }}>
-                <label>Strategi/Tindak Lanjut</label>
+                <label>Strategi/Tindak Lanjut <span className="req">*</span></label>
                 <textarea 
                   rows={4}
                   value={mcrStrategy}
@@ -1545,7 +1546,7 @@ export function SippApp() {
                 />
               </div>
               <div className="fg">
-                <label>Data Dukung (Google Drive Link)</label>
+                <label>Data Dukung (Google Drive Link) <span className="req">*</span></label>
                 <input 
                   type="url"
                   value={mcrDukung}
