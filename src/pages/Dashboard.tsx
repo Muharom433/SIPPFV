@@ -13,6 +13,20 @@ export function Dashboard() {
   const chartInstance = useRef<any>(null);
 
   const [selectedProdi, setSelectedProdi] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [prodiSearch, setProdiSearch] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState<{
     items: SipItem[];
@@ -294,15 +308,17 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* 2. ALWAYS VISIBLE BANNER (Premium Gradient, Rounded Corners, Soft Shadow) */}
+      {/* 2. ALWAYS VISIBLE BANNER (Vibrant Ocean Blue Gradient, Rounded Corners, Soft Shadow) */}
       <div className="lap-banner" style={{
-        background: 'linear-gradient(135deg, #0a192f 0%, #0d1e36 50%, #112240 100%)',
+        background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.95) 0%, rgba(14, 165, 233, 0.9) 50%, rgba(30, 64, 175, 0.95) 100%)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: '24px',
         padding: '32px 40px',
         color: 'var(--white)',
         position: 'relative',
         marginBottom: '24px',
-        boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.25)',
+        boxShadow: '0 20px 40px -15px rgba(2, 132, 199, 0.3)',
         overflow: 'hidden',
         display: 'flex',
         justifyContent: 'space-between',
@@ -310,14 +326,36 @@ export function Dashboard() {
         gap: '24px',
         flexWrap: 'wrap'
       }}>
+        {/* Glow effect elements behind glass */}
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          right: '-20%',
+          width: '400px',
+          height: '400px',
+          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 1
+        }} />
+
         <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
-          <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.12)', fontWeight: 600, color: '#64ffda' }}>
+          <span style={{ 
+            fontSize: '0.72rem', 
+            letterSpacing: '0.12em', 
+            textTransform: 'uppercase', 
+            background: 'rgba(255,255,255,0.06)', 
+            padding: '6px 14px', 
+            borderRadius: '99px', 
+            border: '1px solid rgba(255,255,255,0.1)', 
+            fontWeight: 600, 
+            color: '#64ffda' 
+          }}>
             {isAdmin ? 'Dashboard Kinerja' : `Dashboard Kinerja • ${user?.prodi_code || ''}`} &bull; Periode Aktif
           </span>
           <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
             Pelaporan Capaian Kinerja Utama
           </h2>
-          <p style={{ fontSize: '0.95rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.65, marginBottom: '24px', color: '#a8b2d1' }}>
+          <p style={{ fontSize: '0.95rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.65, marginBottom: '24px', color: '#cbd5e1' }}>
             Pantau dan lengkapi pelaporan realisasi IKU Anda secara bertahap. Pastikan setiap data dukung sesuai dengan standar validasi nasional.
           </p>
           <div style={{ maxWidth: '450px' }}>
@@ -331,45 +369,194 @@ export function Dashboard() {
           </div>
         </div>
         <div style={{ zIndex: 2, background: 'rgba(255,255,255,0.04)', padding: '24px 32px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', minWidth: '220px', textAlign: 'center', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)' }}>
-          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8, marginBottom: '10px', color: '#a8b2d1', fontWeight: 600 }}>Tahun Anggaran</div>
+          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8, marginBottom: '10px', color: '#cbd5e1', fontWeight: 600 }}>Tahun Anggaran</div>
           <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text)', background: 'var(--white)', padding: '10px 20px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}>
             <i className="fa-solid fa-calendar-days" style={{ color: 'var(--blue)' }}></i> PERIODE 2026
           </div>
         </div>
       </div>
 
-      {/* 3. ALWAYS VISIBLE FILTER BAR (Sejajar & Icon Kaca Pembesar) */}
+      {/* 3. ALWAYS VISIBLE FILTER BAR (Modern Searchable Dropdown style, 100% width) */}
       {isAdmin && (
-        <div className="filter-bar" style={{
+        <div className="filter-bar-inner" style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
+          gap: '24px',
           marginBottom: '28px',
-          padding: '16px 24px',
+          padding: '16px 28px',
           background: 'var(--white)',
           borderRadius: '20px',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
           border: '1px solid rgba(226, 232, 240, 0.8)',
-          width: 'fit-content',
-          minWidth: '450px'
+          width: '100%'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+          {/* Custom Searchable Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, position: 'relative' }} ref={dropdownRef}>
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Program Studi:</span>
-            <select 
-              id="lap-flt-prodi" 
-              className="flt-select"
-              value={selectedProdi}
-              onChange={(e) => setSelectedProdi(e.target.value)}
-              style={{ flex: 1, height: '40px', borderRadius: '10px', border: '1px solid var(--border)', padding: '0 12px', fontWeight: 500, color: 'var(--text)', background: '#f8fafc', outline: 'none' }}
-            >
-              <option value="">-- Pilih Prodi --</option>
-              {prodiLinks.map((p) => (
-                <option key={p.id} value={p.prodi_code}>
-                  {p.prodi_code} — {p.prodi_name}
-                </option>
-              ))}
-            </select>
+            <div style={{ flex: 1, position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                style={{
+                  width: '100%',
+                  height: '40px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border)',
+                  padding: '0 12px',
+                  fontWeight: 500,
+                  color: 'var(--text)',
+                  background: '#f8fafc',
+                  outline: 'none',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '0.88rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px'
+                }}
+              >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {selectedProdi ? `${selectedProdi} — ${prodiLinks.find(p => p.prodi_code === selectedProdi)?.prodi_name || ''}` : '— Pilih Prodi —'}
+                </span>
+                <i className={`fa-solid fa-chevron-down`} style={{ fontSize: '0.8rem', color: 'var(--muted)', transition: 'transform 0.2s', transform: isDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
+              </button>
+
+              {/* Dropdown Options */}
+              {isDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '46px',
+                  left: 0,
+                  width: '320px',
+                  background: '#fff',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)',
+                  border: '1px solid var(--border)',
+                  padding: '12px',
+                  zIndex: 999,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px'
+                }}>
+                  {/* Dropdown Search Input */}
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="Cari program studi..."
+                      value={prodiSearch}
+                      onChange={(e) => setProdiSearch(e.target.value)}
+                      autoFocus
+                      style={{
+                        width: '100%',
+                        height: '36px',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border)',
+                        padding: '0 10px 0 30px',
+                        fontSize: '0.85rem',
+                        outline: 'none',
+                        background: '#f8fafc',
+                        color: 'var(--text)'
+                      }}
+                    />
+                    <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '0.8rem' }}></i>
+                  </div>
+
+                  {/* Options List */}
+                  <div style={{ 
+                    maxHeight: '220px', 
+                    overflowY: 'auto', 
+                    display: 'flex', 
+                    flexDirection: 'column',
+                    gap: '4px',
+                    paddingRight: '4px'
+                  }}>
+                    <div
+                      onClick={() => {
+                        setSelectedProdi('');
+                        setIsDropdownOpen(false);
+                        setProdiSearch('');
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        textAlign: 'left',
+                        background: selectedProdi === '' ? '#e0f2fe' : 'transparent',
+                        color: selectedProdi === '' ? '#0369a1' : 'var(--text)',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: selectedProdi === '' ? 600 : 500,
+                        fontSize: '0.85rem',
+                        transition: 'all 0.15s',
+                        display: 'block',
+                        boxSizing: 'border-box',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        userSelect: 'none'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedProdi !== '') e.currentTarget.style.background = '#f1f5f9';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedProdi !== '') e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      — Pilih Prodi —
+                    </div>
+
+                    {prodiLinks.filter(p => 
+                      p.prodi_name.toLowerCase().includes(prodiSearch.toLowerCase()) || 
+                      p.prodi_code.toLowerCase().includes(prodiSearch.toLowerCase())
+                    ).map(p => (
+                      <div
+                        key={p.id}
+                        onClick={() => {
+                          setSelectedProdi(p.prodi_code);
+                          setIsDropdownOpen(false);
+                          setProdiSearch('');
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          textAlign: 'left',
+                          background: selectedProdi === p.prodi_code ? '#e0f2fe' : 'transparent',
+                          color: selectedProdi === p.prodi_code ? '#0369a1' : 'var(--text)',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontWeight: selectedProdi === p.prodi_code ? 600 : 500,
+                          fontSize: '0.85rem',
+                          transition: 'all 0.15s',
+                          display: 'block',
+                          boxSizing: 'border-box',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          userSelect: 'none'
+                        }}
+                        title={`${p.prodi_code} — ${p.prodi_name}`}
+                        onMouseEnter={(e) => {
+                          if (selectedProdi !== p.prodi_code) {
+                            e.currentTarget.style.background = '#f1f5f9';
+                            e.currentTarget.style.color = '#0284c7';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedProdi !== p.prodi_code) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text)';
+                          }
+                        }}
+                      >
+                        {p.prodi_code} — {p.prodi_name}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
+
           <button 
             id="btn-tampilkan-laporan" 
             className="btn btn-primary" 
@@ -384,16 +571,26 @@ export function Dashboard() {
               borderRadius: '10px',
               padding: 0,
               flexShrink: 0,
-              background: 'var(--blue)',
-              borderColor: 'var(--blue)',
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.2)'
+              background: '#1e40af',
+              borderColor: '#1e40af',
+              boxShadow: '0 4px 12px rgba(30, 64, 175, 0.2)',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
             }}
             title="Tampilkan Laporan"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#1d4ed8';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#1e40af';
+              e.currentTarget.style.transform = 'none';
+            }}
           >
             {loading ? (
-              <i className="fa-solid fa-spinner fa-spin"></i>
+              <i className="fa-solid fa-spinner fa-spin" style={{ color: '#fff' }}></i>
             ) : (
-              <i className="fa-solid fa-magnifying-glass" style={{ fontSize: '1rem' }}></i>
+              <i className="fa-solid fa-magnifying-glass" style={{ fontSize: '1rem', color: '#fff' }}></i>
             )}
           </button>
         </div>

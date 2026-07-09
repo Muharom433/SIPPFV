@@ -99,14 +99,14 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
 
       {/* 1. PAPAN INFORMASI (Glassmorphism & Ultra-Modern Gradient) */}
       <div className="lap-banner" style={{
-        background: 'linear-gradient(135deg, rgba(10, 25, 47, 0.95) 0%, rgba(13, 30, 58, 0.9) 50%, rgba(17, 34, 64, 0.95) 100%)',
+        background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.95) 0%, rgba(14, 165, 233, 0.9) 50%, rgba(30, 64, 175, 0.95) 100%)',
         backdropFilter: 'blur(20px)',
         border: '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: '24px',
         padding: '32px 40px',
         color: 'var(--white)',
         position: 'relative',
-        boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.3)',
+        boxShadow: '0 20px 40px -15px rgba(2, 132, 199, 0.3)',
         overflow: 'hidden',
         display: 'flex',
         justifyContent: 'space-between',
@@ -422,9 +422,15 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                     </div>
 
                     {/* Options List */}
-                    <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-                      <button
-                        type="button"
+                    <div style={{ 
+                      maxHeight: '220px', 
+                      overflowY: 'auto', 
+                      display: 'flex', 
+                      flexDirection: 'column',
+                      gap: '4px',
+                      paddingRight: '4px'
+                    }}>
+                      <div
                         onClick={() => {
                           setFilterProdi('');
                           setIsDropdownOpen(false);
@@ -433,16 +439,21 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                         }}
                         style={{
                           width: '100%',
-                          padding: '8px 12px',
+                          padding: '10px 14px',
                           textAlign: 'left',
-                          background: activeProdi === '' ? 'rgba(30, 64, 175, 0.08)' : 'transparent',
-                          color: activeProdi === '' ? '#1e40af' : 'var(--text)',
-                          border: 'none',
-                          borderRadius: '6px',
+                          background: activeProdi === '' ? '#e0f2fe' : 'transparent',
+                          color: activeProdi === '' ? '#0369a1' : 'var(--text)',
+                          borderRadius: '8px',
                           cursor: 'pointer',
                           fontWeight: activeProdi === '' ? 600 : 500,
-                          fontSize: '0.82rem',
-                          transition: 'all 0.15s'
+                          fontSize: '0.85rem',
+                          transition: 'all 0.15s',
+                          display: 'block',
+                          boxSizing: 'border-box',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          userSelect: 'none'
                         }}
                         onMouseEnter={(e) => {
                           if (activeProdi !== '') e.currentTarget.style.background = '#f1f5f9';
@@ -452,12 +463,11 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                         }}
                       >
                         — Semua Prodi / Vokasi —
-                      </button>
+                      </div>
 
                       {filteredProdis.map(p => (
-                        <button
+                        <div
                           key={p.id}
-                          type="button"
                           onClick={() => {
                             setFilterProdi(p.prodi_code);
                             setIsDropdownOpen(false);
@@ -466,30 +476,38 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                           }}
                           style={{
                             width: '100%',
-                            padding: '8px 12px',
+                            padding: '10px 14px',
                             textAlign: 'left',
-                            background: activeProdi === p.prodi_code ? 'rgba(30, 64, 175, 0.08)' : 'transparent',
-                            color: activeProdi === p.prodi_code ? '#1e40af' : 'var(--text)',
-                            border: 'none',
-                            borderRadius: '6px',
+                            background: activeProdi === p.prodi_code ? '#e0f2fe' : 'transparent',
+                            color: activeProdi === p.prodi_code ? '#0369a1' : 'var(--text)',
+                            borderRadius: '8px',
                             cursor: 'pointer',
                             fontWeight: activeProdi === p.prodi_code ? 600 : 500,
-                            fontSize: '0.82rem',
+                            fontSize: '0.85rem',
+                            transition: 'all 0.15s',
+                            display: 'block',
+                            boxSizing: 'border-box',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
-                            transition: 'all 0.15s'
+                            userSelect: 'none'
                           }}
                           title={`${p.prodi_code} — ${p.prodi_name}`}
                           onMouseEnter={(e) => {
-                            if (activeProdi !== p.prodi_code) e.currentTarget.style.background = '#f1f5f9';
+                            if (activeProdi !== p.prodi_code) {
+                              e.currentTarget.style.background = '#f1f5f9';
+                              e.currentTarget.style.color = '#0284c7';
+                            }
                           }}
                           onMouseLeave={(e) => {
-                            if (activeProdi !== p.prodi_code) e.currentTarget.style.background = 'transparent';
+                            if (activeProdi !== p.prodi_code) {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = 'var(--text)';
+                            }
                           }}
                         >
                           {p.prodi_code} — {p.prodi_name}
-                        </button>
+                        </div>
                       ))}
 
                       {filteredProdis.length === 0 && (
