@@ -281,22 +281,81 @@ export function Laporan() {
 
   return (
     <div className="view" id="view-laporan">
-      <div className="section-head">
+      {/* 1. Page Title */}
+      <div className="section-head" style={{ marginBottom: '24px' }}>
         <div>
           <h2><i className="fa-solid fa-chart-bar"></i> Laporan Kelengkapan Renstra</h2>
           <p className="sub-text">Pantau progress pengisian data Renstra per Prodi</p>
         </div>
       </div>
 
+      {/* 2. ALWAYS VISIBLE BANNER (Premium Gradient, Rounded Corners, Soft Shadow) */}
+      <div className="lap-banner" style={{
+        background: 'linear-gradient(135deg, #0a192f 0%, #0d1e36 50%, #112240 100%)',
+        borderRadius: '24px',
+        padding: '32px 40px',
+        color: 'var(--white)',
+        position: 'relative',
+        marginBottom: '24px',
+        boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.25)',
+        overflow: 'hidden',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '24px',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
+          <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.12)', fontWeight: 600, color: '#64ffda' }}>
+            Dashboard Kinerja &bull; Periode Aktif
+          </span>
+          <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
+            Pelaporan Capaian Kinerja Utama
+          </h2>
+          <p style={{ fontSize: '0.95rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.65, marginBottom: '24px', color: '#a8b2d1' }}>
+            Pantau dan lengkapi pelaporan realisasi IKU Anda secara bertahap. Pastikan setiap data dukung sesuai dengan standar validasi nasional.
+          </p>
+          <div style={{ maxWidth: '450px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#cbd5e1' }}>
+              <span>Penyelesaian Laporan Tahunan</span>
+              <span style={{ color: '#64ffda', fontWeight: 700 }}>{reportData ? reportData.overallPct : 0}%</span>
+            </div>
+            <div className="progress-bar-wrap" style={{ background: 'rgba(255,255,255,0.12)', height: '10px', borderRadius: '99px' }}>
+              <div className="progress-bar-fill" style={{ width: `${reportData ? reportData.overallPct : 0}%`, background: '#64ffda', borderRadius: '99px', boxShadow: '0 0 8px #64ffda' }}></div>
+            </div>
+          </div>
+        </div>
+        <div style={{ zIndex: 2, background: 'rgba(255,255,255,0.04)', padding: '24px 32px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', minWidth: '220px', textAlign: 'center', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)' }}>
+          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8, marginBottom: '10px', color: '#a8b2d1', fontWeight: 600 }}>Tahun Anggaran</div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text)', background: 'var(--white)', padding: '10px 20px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}>
+            <i className="fa-solid fa-calendar-days" style={{ color: 'var(--blue)' }}></i> PERIODE 2026
+          </div>
+        </div>
+      </div>
+
+      {/* 3. ALWAYS VISIBLE FILTER BAR (Sejajar & Icon Kaca Pembesar) */}
       {isAdmin && (
-        <div className="filter-bar" style={{ marginBottom: '20px' }}>
-          <div className="fg" style={{ flex: 1, maxWidth: '400px' }}>
-            <label className="fg-label">Program Studi</label>
+        <div className="filter-bar" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          marginBottom: '28px',
+          padding: '16px 24px',
+          background: 'var(--white)',
+          borderRadius: '20px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
+          border: '1px solid rgba(226, 232, 240, 0.8)',
+          width: 'fit-content',
+          minWidth: '450px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Program Studi:</span>
             <select 
               id="lap-flt-prodi" 
               className="flt-select"
               value={selectedProdi}
               onChange={(e) => setSelectedProdi(e.target.value)}
+              style={{ flex: 1, height: '40px', borderRadius: '10px', border: '1px solid var(--border)', padding: '0 12px', fontWeight: 500, color: 'var(--text)', background: '#f8fafc', outline: 'none' }}
             >
               <option value="">-- Pilih Prodi --</option>
               {prodiLinks.map((p) => (
@@ -311,71 +370,113 @@ export function Laporan() {
             className="btn btn-primary" 
             disabled={loading}
             onClick={handleTampilkanLaporan}
-            style={{ alignSelf: 'flex-end', height: '38px' }}
+            style={{
+              height: '40px',
+              width: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '10px',
+              padding: 0,
+              flexShrink: 0,
+              background: 'var(--blue)',
+              borderColor: 'var(--blue)',
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.2)'
+            }}
+            title="Tampilkan Laporan"
           >
             {loading ? (
-              <><i className="fa-solid fa-spinner fa-spin"></i> Memuat...</>
+              <i className="fa-solid fa-spinner fa-spin"></i>
             ) : (
-              <><i className="fa-solid fa-chart-simple"></i> Tampilkan Laporan</>
+              <i className="fa-solid fa-magnifying-glass" style={{ fontSize: '1rem' }}></i>
             )}
           </button>
         </div>
       )}
 
+      {/* 4. EMPTY STATE */}
       {!reportData && !loading && (
-        <div id="lap-empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '360px', color: 'var(--muted)', textAlign: 'center', padding: '48px 24px' }}>
-          <i className="fa-solid fa-filter" style={{ fontSize: '2.8rem', marginBottom: '16px', opacity: 0.25 }}></i>
-          <h3 style={{ marginBottom: '8px', color: 'var(--text)', opacity: 0.55, fontSize: '1.1rem' }}>Pilih Prodi</h3>
-          <p style={{ maxWidth: '380px', lineHeight: 1.65, fontSize: '0.9rem' }}>Pilih Program Studi di atas, lalu klik <strong>Tampilkan Laporan</strong> untuk membuka dashboard kelengkapan Renstra.</p>
+        <div id="lap-empty-state" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '280px',
+          color: 'var(--muted)',
+          textAlign: 'center',
+          padding: '48px 24px',
+          background: 'var(--white)',
+          borderRadius: '24px',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
+          border: '1px solid rgba(226, 232, 240, 0.8)'
+        }}>
+          <i className="fa-solid fa-filter" style={{ fontSize: '3rem', marginBottom: '16px', opacity: 0.25, color: 'var(--blue)' }}></i>
+          <h3 style={{ marginBottom: '8px', color: 'var(--text)', opacity: 0.75, fontSize: '1.25rem', fontWeight: 600 }}>Pilih Program Studi</h3>
+          <p style={{ maxWidth: '420px', lineHeight: 1.65, fontSize: '0.9rem', color: 'var(--muted)' }}>
+            Silakan pilih Program Studi di atas, lalu klik ikon pencarian untuk memuat dashboard kelengkapan laporan Renstra.
+          </p>
         </div>
       )}
 
-      {reportData && (
-        <div id="lap-content">
-          {/* Banner */}
-          <div className="lap-banner" style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: 'var(--radius)', padding: '32px', color: 'var(--white)', position: 'relative', marginBottom: '24px', boxShadow: 'var(--shadow)', overflow: 'hidden', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
-              <span style={{ fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 600 }}>Dashboard Kinerja &bull; Periode Aktif</span>
-              <h2 style={{ fontSize: '1.8rem', margin: '12px 0 8px', fontWeight: 700, color: '#fff' }}>Pelaporan Capaian Kinerja Utama</h2>
-              <p style={{ fontSize: '0.9rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.6, marginBottom: '20px' }}>
-                Pantau dan lengkapi pelaporan realisasi IKU Anda secara bertahap. Pastikan setiap data dukung sesuai dengan standar validasi nasional.
-              </p>
-              <div style={{ maxWidth: '450px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>
-                  <span>Penyelesaian Laporan Tahunan</span>
-                  <span>{reportData.overallPct}%</span>
-                </div>
-                <div className="progress-bar-wrap" style={{ background: 'rgba(255,255,255,0.15)', height: '8px' }}>
-                  <div className="progress-bar-fill" style={{ width: `${reportData.overallPct}%`, background: '#22c55e' }}></div>
-                </div>
-              </div>
-            </div>
-            <div style={{ zIndex: 2, background: 'rgba(255,255,255,0.06)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', minWidth: '220px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8, marginBottom: '8px' }}>Tahun Anggaran</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text)', background: 'var(--white)', padding: '8px 16px', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.15)' }}>
-                <i className="fa-solid fa-calendar-days" style={{ color: 'var(--blue)' }}></i> PERIODE 2026
-              </div>
-            </div>
-          </div>
+      {/* 5. LOADING STATE */}
+      {loading && (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '280px', color: 'var(--blue)' }}>
+          <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '2.5rem', marginBottom: '16px' }}></i>
+          <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Memuat data laporan...</span>
+        </div>
+      )}
 
-          {/* Stats Grid */}
-          <div className="stats-grid" style={{ marginBottom: '24px' }}>
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}><i className="fa-solid fa-list-check"></i></div>
+      {/* 6. CONTENT WHEN reportData IS READY */}
+      {reportData && !loading && (
+        <div id="lap-content">
+          {/* Stats Grid with premium styling */}
+          <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+            <div className="stat-card" style={{
+              background: 'var(--white)',
+              borderRadius: '20px',
+              padding: '20px 24px',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              transition: 'transform 0.2s'
+            }}>
+              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)', borderRadius: '12px', color: '#fff' }}><i className="fa-solid fa-list-check"></i></div>
               <div>
                 <div className="stat-label">Total IKU</div>
                 <div className="stat-val">{reportData.totalIku}</div>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#22c55e,#15803d)' }}><i className="fa-solid fa-circle-check"></i></div>
+            <div className="stat-card" style={{
+              background: 'var(--white)',
+              borderRadius: '20px',
+              padding: '20px 24px',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              transition: 'transform 0.2s'
+            }}>
+              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#22c55e,#15803d)', borderRadius: '12px', color: '#fff' }}><i className="fa-solid fa-circle-check"></i></div>
               <div>
                 <div className="stat-label">Sudah Dilaporkan (Lengkap)</div>
                 <div className="stat-val">{reportData.totalCompleted}</div>
               </div>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#ef4444,#b91c1c)' }}><i className="fa-solid fa-circle-xmark"></i></div>
+            <div className="stat-card" style={{
+              background: 'var(--white)',
+              borderRadius: '20px',
+              padding: '20px 24px',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
+              border: '1px solid rgba(226, 232, 240, 0.8)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '16px',
+              transition: 'transform 0.2s'
+            }}>
+              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#ef4444,#b91c1c)', borderRadius: '12px', color: '#fff' }}><i className="fa-solid fa-circle-xmark"></i></div>
               <div>
                 <div className="stat-label">Belum Lengkap</div>
                 <div className="stat-val">{reportData.totalIncomplete}</div>
@@ -383,14 +484,21 @@ export function Laporan() {
             </div>
           </div>
 
-          {/* Line Chart */}
-          <div style={{ background: 'var(--white)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', padding: '24px', marginBottom: '24px', boxShadow: 'var(--shadow)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          {/* Line Chart card with premium styling */}
+          <div style={{
+            background: 'var(--white)',
+            borderRadius: '24px',
+            border: '1px solid rgba(226, 232, 240, 0.8)',
+            padding: '24px 32px',
+            marginBottom: '28px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
-                <h3 style={{ fontSize: '1.15rem', color: 'var(--text)', fontWeight: 700 }}>Trend Capaian Tahunan</h3>
-                <p style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>Progress per Triwulan Dalam Persentase</p>
+                <h3 style={{ fontSize: '1.25rem', color: 'var(--text)', fontWeight: 700, fontFamily: 'Outfit' }}>Trend Capaian Tahunan</h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '4px' }}>Progress per Triwulan Dalam Persentase</p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted)', background: 'var(--surface)', padding: '4px 10px', borderRadius: '99px', border: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted)', background: 'var(--surface)', padding: '6px 12px', borderRadius: '99px', border: '1px solid var(--border)' }}>
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--blue)' }}></span> Capaian Real (%)
               </div>
             </div>
@@ -411,7 +519,17 @@ export function Laporan() {
               const offset = circumference - (stats.pct / 100) * circumference;
 
               return (
-                <div key={tw} className="lap-tw-card" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '24px', boxShadow: 'var(--shadow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+                <div key={tw} className="lap-tw-card" style={{
+                  background: 'var(--white)',
+                  borderRadius: '24px',
+                  padding: '24px',
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  position: 'relative'
+                }}>
                   <div style={{ flex: 1, paddingRight: '16px' }}>
                     <h4 style={{ fontSize: '1.15rem', font: 'Outfit', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Triwulan {tw}</h4>
                     <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -470,7 +588,14 @@ export function Laporan() {
                 </button>
               </div>
 
-              <div className="tbl-wrap" style={{ marginBottom: '32px' }}>
+              <div className="tbl-wrap" style={{
+                background: 'var(--white)',
+                borderRadius: '24px',
+                padding: '24px',
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                marginBottom: '32px'
+              }}>
                 <table className="htable" id="tbl-laporan-breakdown">
                   <thead>
                     <tr>
