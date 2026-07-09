@@ -285,7 +285,12 @@ export function Dashboard() {
       <div className="section-head" style={{ marginBottom: '24px' }}>
         <div>
           <h2><i className="fa-solid fa-chart-bar"></i> Dashboard Kinerja</h2>
-          <p className="sub-text">Pantau progress pengisian data Renstra per Prodi</p>
+          <p className="sub-text">
+            {isAdmin 
+              ? 'Pantau progress pengisian data Renstra per Prodi' 
+              : `Grafik dan progress capaian Renstra untuk ${user?.prodi_name || user?.prodi_code || 'Program Studi Anda'}`
+            }
+          </p>
         </div>
       </div>
 
@@ -307,7 +312,7 @@ export function Dashboard() {
       }}>
         <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
           <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.12)', fontWeight: 600, color: '#64ffda' }}>
-            Dashboard Kinerja &bull; Periode Aktif
+            {isAdmin ? 'Dashboard Kinerja' : `Dashboard Kinerja • ${user?.prodi_code || ''}`} &bull; Periode Aktif
           </span>
           <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
             Pelaporan Capaian Kinerja Utama
