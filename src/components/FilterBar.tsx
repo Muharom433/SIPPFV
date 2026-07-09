@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { useAuth, useApp } from '../contexts/AuthContext';
 
 interface FilterBarProps {
@@ -17,7 +18,9 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
     setFilterTriwulan,
     filterProdi,
     setFilterProdi,
-    prodiLinks
+    prodiLinks,
+    searchQuery,
+    setSearchQuery
   } = useApp();
 
   const isAdmin = user?.role === 'admin';
@@ -57,21 +60,53 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
     addButtonLabel = 'Tambah CPL';
   }
 
+  // --- Custom Searchable Dropdown state & ref ---
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [prodiSearch, setProdiSearch] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (!showFilter) return null;
 
   const activeProdi = !isAdmin ? (user?.prodi_code || '') : filterProdi;
+  const currentProdiName = prodiLinks.find(p => p.prodi_code === activeProdi)?.prodi_name || '';
+
+  // Filter prodi list based on search text inside dropdown
+  const filteredProdis = prodiLinks.filter(p =>
+    p.prodi_name.toLowerCase().includes(prodiSearch.toLowerCase()) ||
+    p.prodi_code.toLowerCase().includes(prodiSearch.toLowerCase())
+  );
 
   return (
     <div style={{ padding: '24px 24px 0 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      
-      {/* 1. PAPAN INFORMASI (Navy Banner at the Very Top) */}
+      {/* Encapsulated style overrides to remove parent border and default white background */}
+      <style>{`
+        #filter-bar.filter-bar {
+          background: transparent !important;
+          border-bottom: none !important;
+          padding: 0 !important;
+        }
+      `}</style>
+
+      {/* 1. PAPAN INFORMASI (Glassmorphism & Ultra-Modern Gradient) */}
       <div className="lap-banner" style={{
-        background: 'linear-gradient(135deg, #0a192f 0%, #0d1e36 50%, #112240 100%)',
+        background: 'linear-gradient(135deg, rgba(10, 25, 47, 0.95) 0%, rgba(13, 30, 58, 0.9) 50%, rgba(17, 34, 64, 0.95) 100%)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
         borderRadius: '24px',
         padding: '32px 40px',
         color: 'var(--white)',
         position: 'relative',
-        boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.25)',
+        boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.3)',
         overflow: 'hidden',
         display: 'flex',
         justifyContent: 'space-between',
@@ -79,8 +114,30 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
         gap: '24px',
         flexWrap: 'wrap'
       }}>
+        {/* Glow effect elements behind glass */}
+        <div style={{
+          position: 'absolute',
+          top: '-50%',
+          right: '-20%',
+          width: '400px',
+          height: '400px',
+          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%)',
+          pointerEvents: 'none',
+          zIndex: 1
+        }} />
+
         <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
-          <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.12)', fontWeight: 600, color: '#64ffda' }}>
+          <span style={{ 
+            fontSize: '0.72rem', 
+            letterSpacing: '0.12em', 
+            textTransform: 'uppercase', 
+            background: 'rgba(255,255,255,0.06)', 
+            padding: '6px 14px', 
+            borderRadius: '99px', 
+            border: '1px solid rgba(255,255,255,0.1)', 
+            fontWeight: 600, 
+            color: '#64ffda' 
+          }}>
             {bannerLabel} &bull; {activeProdi ? `Prodi ${activeProdi}` : 'General'}
           </span>
           <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
@@ -91,17 +148,24 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           </p>
         </div>
 
-        {/* 2. ACTION BUTTONS INSIDE BANNER (Gambar 4 & Gambar 2 style) */}
-        <div style={{ zIndex: 2, display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+        {/* 2. ACTION BUTTONS INSIDE BANNER (Glassy, Modern Alignment on the right) */}
+        <div style={{ 
+          zIndex: 2, 
+          display: 'flex', 
+          gap: '12px', 
+          flexWrap: 'wrap', 
+          alignItems: 'center',
+          marginLeft: 'auto' 
+        }}>
           {isRenstra && isAdmin && (
             <button 
               className="btn" 
               id="btn-import-renstra"
               onClick={onImportClick}
               style={{
-                background: 'rgba(255, 255, 255, 0.08)',
+                background: 'rgba(255, 255, 255, 0.05)',
                 color: '#fff',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
                 borderRadius: '12px',
                 padding: '10px 20px',
                 fontWeight: 600,
@@ -110,7 +174,16 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                 alignItems: 'center',
                 gap: '8px',
                 transition: 'all 0.2s',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.transform = 'none';
               }}
             >
               <i className="fa-solid fa-file-import"></i> Impor Excel
@@ -122,9 +195,9 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
               id="btn-export-renstra"
               onClick={onExportClick}
               style={{
-                background: '#22c55e',
-                color: '#fff',
-                border: 'none',
+                background: 'rgba(34, 197, 94, 0.15)',
+                color: '#4ade80',
+                border: '1px solid rgba(34, 197, 94, 0.3)',
                 borderRadius: '12px',
                 padding: '10px 20px',
                 fontWeight: 600,
@@ -132,9 +205,17 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 12px rgba(34, 197, 94, 0.2)',
+                boxShadow: '0 4px 15px rgba(34, 197, 94, 0.1)',
                 transition: 'all 0.2s',
                 cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(34, 197, 94, 0.25)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(34, 197, 94, 0.15)';
+                e.currentTarget.style.transform = 'none';
               }}
             >
               <i className="fa-solid fa-file-export"></i> Download Excel
@@ -146,9 +227,9 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
               id="btn-add-main"
               onClick={onAddClick}
               style={{
-                background: '#1e40af',
-                color: '#fff',
-                border: 'none',
+                background: 'rgba(59, 130, 246, 0.2)',
+                color: '#60a5fa',
+                border: '1px solid rgba(59, 130, 246, 0.35)',
                 borderRadius: '12px',
                 padding: '10px 20px',
                 fontWeight: 600,
@@ -156,9 +237,17 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 12px rgba(30, 64, 175, 0.2)',
+                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.1)',
                 transition: 'all 0.2s',
                 cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.3)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+                e.currentTarget.style.transform = 'none';
               }}
             >
               <i className="fa-solid fa-plus"></i> {addButtonLabel}
@@ -167,10 +256,11 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
         </div>
       </div>
 
-      {/* 3. FILTER ROW (Gambar 3 style: white card, inline filters, blue magnifying glass button) */}
+      {/* 3. FILTER ROW (White Card, stretched full-width, search input added on the right) */}
       <div className="filter-bar-inner" style={{
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'space-between',
         gap: '24px',
         padding: '16px 28px',
         background: 'var(--white)',
@@ -178,100 +268,304 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
         border: '1px solid rgba(226, 232, 240, 0.8)',
         flexWrap: 'wrap',
-        width: 'fit-content',
-        minWidth: '450px'
+        width: '100%'
       }}>
-        {showBulan && (
+        {/* Left Side: Select Filters */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', flex: 1 }}>
+          {showBulan && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Triwulan:</span>
+              <select 
+                id="flt-bulan" 
+                className="flt-select"
+                value={filterTriwulan}
+                onChange={(e) => {
+                  setFilterTriwulan(e.target.value);
+                  onRefresh?.();
+                }}
+                style={{ 
+                  height: '40px', 
+                  borderRadius: '10px', 
+                  border: '1px solid var(--border)', 
+                  padding: '0 12px', 
+                  fontWeight: 500, 
+                  color: 'var(--text)', 
+                  background: '#f8fafc', 
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                <option>Triwulan 1</option>
+                <option>Triwulan 2</option>
+                <option>Triwulan 3</option>
+                <option>Triwulan 4</option>
+              </select>
+            </div>
+          )}
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Triwulan:</span>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Tahun:</span>
             <select 
-              id="flt-bulan" 
+              id="flt-tahun" 
               className="flt-select"
-              value={filterTriwulan}
+              value={filterYear}
               onChange={(e) => {
-                setFilterTriwulan(e.target.value);
+                setFilterYear(parseInt(e.target.value) || 2026);
                 onRefresh?.();
               }}
-              style={{ height: '40px', borderRadius: '10px', border: '1px solid var(--border)', padding: '0 12px', fontWeight: 500, color: 'var(--text)', background: '#f8fafc', outline: 'none' }}
+              style={{ 
+                height: '40px', 
+                borderRadius: '10px', 
+                border: '1px solid var(--border)', 
+                padding: '0 12px', 
+                fontWeight: 500, 
+                color: 'var(--text)', 
+                background: '#f8fafc', 
+                outline: 'none',
+                cursor: 'pointer'
+              }}
             >
-              <option>Triwulan 1</option>
-              <option>Triwulan 2</option>
-              <option>Triwulan 3</option>
-              <option>Triwulan 4</option>
+              <option>2026</option>
+              <option>2027</option>
             </select>
           </div>
-        )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Tahun:</span>
-          <select 
-            id="flt-tahun" 
-            className="flt-select"
-            value={filterYear}
-            onChange={(e) => {
-              setFilterYear(parseInt(e.target.value) || 2026);
-              onRefresh?.();
-            }}
-            style={{ height: '40px', borderRadius: '10px', border: '1px solid var(--border)', padding: '0 12px', fontWeight: 500, color: 'var(--text)', background: '#f8fafc', outline: 'none' }}
-          >
-            <option>2026</option>
-            <option>2027</option>
-          </select>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '220px' }}>
-          <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Program Studi:</span>
-          <select 
-            id="flt-unit" 
-            className="flt-select wide"
-            disabled={!isAdmin}
-            value={!isAdmin ? (user?.prodi_code || '') : filterProdi}
-            onChange={(e) => {
-              setFilterProdi(e.target.value);
-              onRefresh?.();
-            }}
-            style={{ flex: 1, height: '40px', borderRadius: '10px', border: '1px solid var(--border)', padding: '0 12px', fontWeight: 500, color: 'var(--text)', background: '#f8fafc', outline: 'none' }}
-          >
+          {/* Program Studi: Custom Searchable Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '280px', position: 'relative' }} ref={dropdownRef}>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Program Studi:</span>
             {!isAdmin ? (
-              <option value={user?.prodi_code || ''}>
+              <div style={{
+                flex: 1,
+                height: '40px',
+                borderRadius: '10px',
+                border: '1px solid var(--border)',
+                padding: '0 12px',
+                fontWeight: 500,
+                color: 'var(--text)',
+                background: '#e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                fontSize: '0.88rem',
+                userSelect: 'none'
+              }}>
                 {user?.prodi_code} — {user?.prodi_name || user?.prodi_code}
-              </option>
+              </div>
             ) : (
-              <>
-                <option value="">— Semua Prodi / Vokasi —</option>
-                {prodiLinks.map((p) => (
-                  <option key={p.id} value={p.prodi_code}>
-                    {p.prodi_code} — {p.prodi_name}
-                  </option>
-                ))}
-              </>
+              <div style={{ flex: 1, position: 'relative' }}>
+                {/* Dropdown Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  style={{
+                    width: '100%',
+                    height: '40px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--border)',
+                    padding: '0 12px',
+                    fontWeight: 500,
+                    color: 'var(--text)',
+                    background: '#f8fafc',
+                    outline: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '0.88rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px'
+                  }}
+                >
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {activeProdi ? `${activeProdi} — ${currentProdiName}` : '— Semua Prodi / Vokasi —'}
+                  </span>
+                  <i className={`fa-solid fa-chevron-down`} style={{ fontSize: '0.8rem', color: 'var(--muted)', transition: 'transform 0.2s', transform: isDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
+                </button>
+
+                {/* Dropdown Body */}
+                {isDropdownOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '46px',
+                    left: 0,
+                    width: '320px',
+                    background: '#fff',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)',
+                    border: '1px solid var(--border)',
+                    padding: '12px',
+                    zIndex: 999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px'
+                  }}>
+                    {/* Live Search Input inside Dropdown */}
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type="text"
+                        placeholder="Cari program studi..."
+                        value={prodiSearch}
+                        onChange={(e) => setProdiSearch(e.target.value)}
+                        autoFocus
+                        style={{
+                          width: '100%',
+                          height: '36px',
+                          borderRadius: '8px',
+                          border: '1px solid var(--border)',
+                          padding: '0 10px 0 30px',
+                          fontSize: '0.85rem',
+                          outline: 'none',
+                          background: '#f8fafc',
+                          color: 'var(--text)'
+                        }}
+                      />
+                      <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '0.8rem' }}></i>
+                    </div>
+
+                    {/* Options List */}
+                    <div style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFilterProdi('');
+                          setIsDropdownOpen(false);
+                          setProdiSearch('');
+                          onRefresh?.();
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          textAlign: 'left',
+                          background: activeProdi === '' ? 'rgba(30, 64, 175, 0.08)' : 'transparent',
+                          color: activeProdi === '' ? '#1e40af' : 'var(--text)',
+                          border: 'none',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontWeight: activeProdi === '' ? 600 : 500,
+                          fontSize: '0.82rem',
+                          transition: 'all 0.15s'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (activeProdi !== '') e.currentTarget.style.background = '#f1f5f9';
+                        }}
+                        onMouseLeave={(e) => {
+                          if (activeProdi !== '') e.currentTarget.style.background = 'transparent';
+                        }}
+                      >
+                        — Semua Prodi / Vokasi —
+                      </button>
+
+                      {filteredProdis.map(p => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setFilterProdi(p.prodi_code);
+                            setIsDropdownOpen(false);
+                            setProdiSearch('');
+                            onRefresh?.();
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '8px 12px',
+                            textAlign: 'left',
+                            background: activeProdi === p.prodi_code ? 'rgba(30, 64, 175, 0.08)' : 'transparent',
+                            color: activeProdi === p.prodi_code ? '#1e40af' : 'var(--text)',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontWeight: activeProdi === p.prodi_code ? 600 : 500,
+                            fontSize: '0.82rem',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            transition: 'all 0.15s'
+                          }}
+                          title={`${p.prodi_code} — ${p.prodi_name}`}
+                          onMouseEnter={(e) => {
+                            if (activeProdi !== p.prodi_code) e.currentTarget.style.background = '#f1f5f9';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (activeProdi !== p.prodi_code) e.currentTarget.style.background = 'transparent';
+                          }}
+                        >
+                          {p.prodi_code} — {p.prodi_name}
+                        </button>
+                      ))}
+
+                      {filteredProdis.length === 0 && (
+                        <div style={{ padding: '12px', textAlign: 'center', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                          Prodi tidak ditemukan
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
-          </select>
+          </div>
         </div>
 
-        {/* 4. BLUE MAGNIFYING GLASS SEARCH BUTTON (Gambar 3 style) */}
-        <button 
-          id="btn-tampilkan" 
-          className="btn btn-primary" 
-          onClick={onRefresh}
-          style={{
-            height: '40px',
-            width: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: '10px',
-            padding: 0,
-            flexShrink: 0,
-            background: '#1e40af',
-            borderColor: '#1e40af',
-            boxShadow: '0 4px 12px rgba(30, 64, 175, 0.2)',
-            cursor: 'pointer'
-          }}
-          title="Tampilkan"
-        >
-          <i className="fa-solid fa-magnifying-glass" style={{ fontSize: '1rem', color: '#fff' }}></i>
-        </button>
+        {/* Right Side: Uraian/Kode Search box & Refresh Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '320px', flexShrink: 0 }}>
+          {/* Search Box on the Right */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, position: 'relative' }}>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Cari:</span>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input 
+                type="text" 
+                placeholder="Cari Kode atau Uraian..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  height: '40px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border)',
+                  padding: '0 12px 0 34px',
+                  fontWeight: 500,
+                  color: 'var(--text)',
+                  background: '#f8fafc',
+                  outline: 'none',
+                  fontSize: '0.85rem'
+                }}
+              />
+              <i className="fa-solid fa-magnifying-glass" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', fontSize: '0.85rem' }}></i>
+            </div>
+          </div>
+
+          {/* Blue Search Refresh Button */}
+          <button 
+            id="btn-tampilkan" 
+            className="btn btn-primary" 
+            onClick={onRefresh}
+            style={{
+              height: '40px',
+              width: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '10px',
+              padding: 0,
+              flexShrink: 0,
+              background: '#1e40af',
+              borderColor: '#1e40af',
+              boxShadow: '0 4px 12px rgba(30, 64, 175, 0.2)',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            title="Tampilkan"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#1d4ed8';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#1e40af';
+              e.currentTarget.style.transform = 'none';
+            }}
+          >
+            <i className="fa-solid fa-arrows-rotate" style={{ fontSize: '1rem', color: '#fff' }}></i>
+          </button>
+        </div>
       </div>
     </div>
   );

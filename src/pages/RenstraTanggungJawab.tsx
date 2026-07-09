@@ -34,7 +34,8 @@ export function RenstraTanggungJawab({
     filterTriwulan,
     filterProdi,
     collapsed,
-    toggleCollapse
+    toggleCollapse,
+    searchQuery
   } = useApp();
 
   const isAdmin = user?.role === 'admin';
@@ -60,6 +61,36 @@ export function RenstraTanggungJawab({
 
   // Calculate aggregated amounts
   calculateAggregateAmounts(roots, activeProdi);
+
+  // Visible IDs for search filter
+  const visibleIds = React.useMemo(() => {
+    const ids = new Set<number>();
+    if (!searchQuery.trim()) return ids;
+
+    const query = searchQuery.toLowerCase().trim();
+    const matches = (n: TreeNode) => {
+      return (n.description?.toLowerCase().includes(query) || n.code?.toLowerCase().includes(query));
+    };
+
+    const checkVisibility = (n: TreeNode): boolean => {
+      let anyChildVisible = false;
+      if (n.children) {
+        n.children.forEach(child => {
+          if (checkVisibility(child)) {
+            anyChildVisible = true;
+          }
+        });
+      }
+      const isVisible = matches(n) || anyChildVisible;
+      if (isVisible) {
+        ids.add(n.id);
+      }
+      return isVisible;
+    };
+
+    roots.forEach(checkVisibility);
+    return ids;
+  }, [roots, searchQuery]);
 
   const handleSaveTargetFakultas = async (id: number, val: string) => {
     try {
@@ -116,7 +147,7 @@ export function RenstraTanggungJawab({
   // Warning for admin if no prodi is filtered
   if (!activeProdi && isAdmin) {
     return (
-      <div className="view" id="view-renstra-tanggung" style={{ padding: '0 24px 24px 24px' }}>
+      <div className="view" id="view-renstra-tanggung" style={{ padding: '0 0 24px 0' }}>
         <div className="tbl-wrap">
           <table className="htable">
             <tbody>
@@ -136,8 +167,10 @@ export function RenstraTanggungJawab({
   const renderRow = (node: TreeNode) => {
     if (node.level > 4) return null;
 
-    const hidden = isAncestorCollapsed(node, map, collapsed);
-    const isCol = collapsed.has(node.id);
+    if (searchQuery.trim() && !visibleIds.has(node.id)) return null;
+
+    const hidden = searchQuery.trim() ? false : isAncestorCollapsed(node, map, collapsed);
+    const isCol = searchQuery.trim() ? false : collapsed.has(node.id);
     const cls = levelClass(node.level);
     const indent = (node.level - 1) * 16;
     const hasKids = node.children && node.children.length > 0 && node.level < 4;
@@ -267,7 +300,7 @@ export function RenstraTanggungJawab({
   };
 
   return (
-    <div className="view" id="view-renstra-tanggung" style={{ padding: '0 24px 24px 24px' }}>
+    <div className="view" id="view-renstra-tanggung" style={{ padding: '0 0 24px 0' }}>
       <div className="tbl-wrap tbl-scroll">
         <table className="htable" id="tbl-renstra-tj">
           <thead>

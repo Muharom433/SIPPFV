@@ -67,6 +67,7 @@ interface AppState {
   filterYear: number;
   filterTriwulan: string;
   filterProdi: string;
+  searchQuery: string;
 }
 
 interface AppContextType extends AppState {
@@ -81,6 +82,7 @@ interface AppContextType extends AppState {
   setFilterYear: (year: number) => void;
   setFilterTriwulan: (tw: string) => void;
   setFilterProdi: (prodi: string) => void;
+  setSearchQuery: (query: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -99,6 +101,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [filterYear, setFilterYear] = useState(2026);
   const [filterTriwulan, setFilterTriwulan] = useState('Triwulan 1');
   const [filterProdi, setFilterProdi] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleCollapse = useCallback((id: number) => {
     setCollapsed(prev => {
@@ -117,6 +120,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  // Clear search query on tab change
+  useEffect(() => {
+    setSearchQuery('');
+  }, [tab]);
+
   return (
     <AppContext.Provider value={{
       tab, setTab, items, setItems, prodiLinks, setProdiLinks,
@@ -124,7 +132,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       renstraProgress, setRenstraProgress, collapsed, toggleCollapse,
       sidebarCollapsed, toggleSidebar,
       filterYear, setFilterYear, filterTriwulan, setFilterTriwulan,
-      filterProdi, setFilterProdi
+      filterProdi, setFilterProdi,
+      searchQuery, setSearchQuery
     }}>
       {children}
     </AppContext.Provider>
