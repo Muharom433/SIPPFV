@@ -125,54 +125,26 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
         gap: '24px',
         flexWrap: 'wrap'
       }}>
-        {/* Overlapping circle vector pattern (highly visible matching reference) */}
-        <div style={{
-          position: 'absolute',
-          top: '-15%',
-          right: '5%',
-          width: '500px',
-          height: '500px',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 70%)',
-          pointerEvents: 'none',
-          zIndex: 1
-        }} />
-        <div style={{
-          position: 'absolute',
-          top: '-30%',
-          right: '-10%',
-          width: '450px',
-          height: '450px',
-          borderRadius: '50%',
-          border: '2px solid rgba(255, 255, 255, 0.2)',
-          background: 'transparent',
-          pointerEvents: 'none',
-          zIndex: 1
-        }} />
-        <div style={{
-          position: 'absolute',
-          bottom: '-35%',
-          right: '12%',
-          width: '420px',
-          height: '420px',
-          borderRadius: '50%',
-          border: '1.5px solid rgba(255, 255, 255, 0.18)',
-          background: 'rgba(255, 255, 255, 0.05)',
-          pointerEvents: 'none',
-          zIndex: 1
-        }} />
-        <div style={{
-          position: 'absolute',
-          top: '20%',
-          right: '30%',
-          width: '280px',
-          height: '280px',
-          borderRadius: '50%',
-          border: '1.5px solid rgba(255, 255, 255, 0.15)',
-          background: 'transparent',
-          pointerEvents: 'none',
-          zIndex: 1
-        }} />
+        {/* Highly Visible SVG Decorative Vector Circle Pattern (matching reference) */}
+        <svg 
+          viewBox="0 0 1000 200" 
+          preserveAspectRatio="xMaxYMid slice"
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 1
+          }}
+        >
+          {/* Overlapping Vector Circles with High Visibility */}
+          <circle cx="850" cy="100" r="180" fill="none" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="3" />
+          <circle cx="730" cy="180" r="220" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.28)" strokeWidth="2.5" />
+          <circle cx="920" cy="-20" r="160" fill="none" stroke="rgba(255, 255, 255, 0.22)" strokeWidth="2" />
+          <circle cx="620" cy="40" r="100" fill="none" stroke="rgba(255, 255, 255, 0.18)" strokeWidth="1.5" />
+        </svg>
 
         {/* 4-point Sparkle SVG in bottom-right corner (Highly Visible) */}
         <svg viewBox="0 0 24 24" fill="currentColor" style={{
@@ -181,9 +153,9 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           bottom: '22px',
           width: '22px',
           height: '22px',
-          color: 'rgba(255, 255, 255, 0.85)',
+          color: 'rgba(255, 255, 255, 0.9)',
           pointerEvents: 'none',
-          zIndex: 1
+          zIndex: 2
         }}>
           <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z" />
         </svg>
