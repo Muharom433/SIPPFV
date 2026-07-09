@@ -125,7 +125,7 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
         gap: '24px',
         flexWrap: 'wrap'
       }}>
-        {/* Overlapping circle vector pattern (matching reference) */}
+        {/* Overlapping circle vector pattern (highly visible matching reference) */}
         <div style={{
           position: 'absolute',
           top: '-15%',
@@ -133,7 +133,7 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           width: '500px',
           height: '500px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%)',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 70%)',
           pointerEvents: 'none',
           zIndex: 1
         }} />
@@ -144,7 +144,7 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           width: '450px',
           height: '450px',
           borderRadius: '50%',
-          border: '1.5px solid rgba(255, 255, 255, 0.06)',
+          border: '2px solid rgba(255, 255, 255, 0.2)',
           background: 'transparent',
           pointerEvents: 'none',
           zIndex: 1
@@ -156,8 +156,8 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           width: '420px',
           height: '420px',
           borderRadius: '50%',
-          border: '1px solid rgba(255, 255, 255, 0.05)',
-          background: 'rgba(255, 255, 255, 0.01)',
+          border: '1.5px solid rgba(255, 255, 255, 0.18)',
+          background: 'rgba(255, 255, 255, 0.05)',
           pointerEvents: 'none',
           zIndex: 1
         }} />
@@ -168,20 +168,20 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           width: '280px',
           height: '280px',
           borderRadius: '50%',
-          border: '1px solid rgba(255, 255, 255, 0.04)',
+          border: '1.5px solid rgba(255, 255, 255, 0.15)',
           background: 'transparent',
           pointerEvents: 'none',
           zIndex: 1
         }} />
 
-        {/* 4-point Sparkle SVG in bottom-right corner */}
+        {/* 4-point Sparkle SVG in bottom-right corner (Highly Visible) */}
         <svg viewBox="0 0 24 24" fill="currentColor" style={{
           position: 'absolute',
           right: '30px',
           bottom: '22px',
           width: '22px',
           height: '22px',
-          color: 'rgba(255, 255, 255, 0.4)',
+          color: 'rgba(255, 255, 255, 0.85)',
           pointerEvents: 'none',
           zIndex: 1
         }}>
