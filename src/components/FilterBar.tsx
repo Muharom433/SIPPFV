@@ -159,14 +159,19 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           </p>
         </div>
 
-        {/* 2. ACTION BUTTONS INSIDE BANNER (Premium Glassmorphic Buttons) */}
+        {/* 2. ACTION BUTTONS INSIDE BANNER (Glassy Panel Card to group and fill space) */}
         <div style={{ 
           zIndex: 2, 
           display: 'flex', 
           gap: '12px', 
-          flexWrap: 'wrap', 
           alignItems: 'center',
-          marginLeft: 'auto' 
+          marginLeft: 'auto',
+          background: 'rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgba(255, 255, 255, 0.15)',
+          borderRadius: '20px',
+          padding: '16px 20px',
+          boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.15), 0 8px 32px 0 rgba(0, 0, 0, 0.05)',
+          backdropFilter: 'blur(8px)'
         }}>
           {isRenstra && isAdmin && (
             <button 
