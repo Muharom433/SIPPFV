@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase';
 import type { RenstraProgress } from '../types';
 
-export async function getRenstraProgress(prodiCode: string, triwulan?: number): Promise<RenstraProgress[]> {
+export async function getRenstraProgress(prodiCode: string, triwulan?: number, year?: number): Promise<RenstraProgress[]> {
   let query = supabase
     .from('renstra_progress')
     .select('*')
@@ -9,6 +9,12 @@ export async function getRenstraProgress(prodiCode: string, triwulan?: number): 
 
   if (triwulan) {
     query = query.eq('triwulan', triwulan);
+  }
+
+  if (year) {
+    const startDate = `${year}-01-01T00:00:00.000Z`;
+    const endDate   = `${year}-12-31T23:59:59.999Z`;
+    query = query.gte('updated_at', startDate).lte('updated_at', endDate);
   }
 
   const { data, error } = await query.order('item_id', { ascending: true });

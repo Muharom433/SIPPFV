@@ -13,7 +13,7 @@ export function ComingSoon({ title }: ComingSoonProps) {
         Fitur <strong>{title}</strong> sedang dalam tahap pengembangan sistem penganggaran & perencanaan terbaru. Terima kasih atas kesabaran Anda.
       </p>
       <div style={{ background: '#f8fafc', padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border)', fontSize: '0.85rem', fontWeight: 600, color: 'var(--muted)', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-        SIPP TA 2026 &bull; Fakultas Vokasi UNY
+        SIGAP TA 2026 &bull; Fakultas Vokasi UNY
       </div>
     </div>
   );

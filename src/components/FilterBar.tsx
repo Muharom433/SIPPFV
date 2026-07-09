@@ -25,7 +25,7 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
 
   const isAdmin = user?.role === 'admin';
 
-  const showFilter = ['rka-data', 'rka-rpd', 'renstra-tanggung', 'renstra-capaian', 'pembelajaran'].includes(tab);
+  const showFilter = ['renstra-tanggung', 'renstra-capaian'].includes(tab);
   const showBulan = ['renstra-tanggung', 'renstra-capaian'].includes(tab);
   const isRenstra = tab === 'renstra-tanggung' || tab === 'renstra-capaian';
 
@@ -139,12 +139,13 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
             zIndex: 1
           }}
         >
-          {/* Overlapping Vector Circles with High Visibility */}
-          <circle cx="850" cy="100" r="180" fill="none" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="3" />
-          <circle cx="730" cy="180" r="220" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.28)" strokeWidth="2.5" />
-          <circle cx="920" cy="-20" r="160" fill="none" stroke="rgba(255, 255, 255, 0.22)" strokeWidth="2" />
-          <circle cx="620" cy="40" r="100" fill="none" stroke="rgba(255, 255, 255, 0.18)" strokeWidth="1.5" />
+          <path d="M750,-100 C850,50 950,50 1050,-100 Z" fill="rgba(255,255,255,0.03)" />
+          <path d="M800,-50 C880,80 980,80 1050,-50 Z" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2" />
+          <circle cx="850" cy="100" r="300" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          <circle cx="950" cy="50" r="200" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" />
+          <circle cx="900" cy="150" r="150" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
         </svg>
+
 
 
 

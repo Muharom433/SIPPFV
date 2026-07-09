@@ -8,8 +8,9 @@ const TAB_CONFIG: Record<string, { title: string }> = {
   'renstra-capaian': { title: 'Renstra / Capaian' },
   'pembelajaran': { title: 'Data Pembelajaran' },
   'pembelian': { title: 'Transaksi / Pembelian' },
-  'manajemen-prodi': { title: 'Manajemen Prodi & Dept / Prodi' },
-  'manajemen-departemen': { title: 'Manajemen Prodi & Dept / Departemen' },
+  'manajemen-prodi': { title: 'Administrasi Sistem / Prodi' },
+  'manajemen-departemen': { title: 'Administrasi Sistem / Departemen' },
+  'manajemen-user': { title: 'Administrasi Sistem / User' },
   'laporan': { title: 'Laporan' },
 };
 

@@ -37,7 +37,15 @@ export function Sidebar() {
   }, [tab]);
 
   const toggleGroup = (group: string) => {
-    setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }));
+    setOpenGroups(prev => {
+      if (prev[group]) {
+        // Close if already open
+        return { rka: false, renstra: false, transaksi: false, manajemen: false };
+      } else {
+        // Close others, open this one
+        return { rka: false, renstra: false, transaksi: false, manajemen: false, [group]: true };
+      }
+    });
   };
 
   // Load RKA items for the sidebar budget card
@@ -120,7 +128,17 @@ export function Sidebar() {
           transition: all 0.3s ease !important;
           font-weight: 500 !important;
           font-size: 0.95rem !important;
+          display: flex !important;
+          align-items: center !important;
+          gap: 12px !important;
         }
+        .sidenav .nav-item a span, .sidenav .nav-group-header span {
+          flex: 1 !important;
+          white-space: normal !important;
+          line-height: 1.25 !important;
+          text-align: left !important;
+        }
+
         .sidenav .nav-item a:hover, .sidenav .nav-group-header:hover {
           background: #f8fafc !important;
           color: #0f172a !important;
@@ -168,9 +186,11 @@ export function Sidebar() {
           background: transparent !important;
           color: #64748b !important;
           border-left: none !important;
-          display: block;
+          display: flex !important;
           width: 100%;
           font-size: 0.9rem !important;
+          white-space: normal !important;
+          line-height: 1.25 !important;
         }
         .nav-sub li.active {
           background: #f0f9ff !important;
@@ -195,7 +215,7 @@ export function Sidebar() {
         }
       `}</style>
       <div className="sidebar-logo">
-        <span className="logo-sip">SIPP</span>
+        <span className="logo-sip">SIGAP</span>
         <button id="btn-sidebar-close" className="sidebar-close-btn" aria-label="Tutup Menu" onClick={toggleSidebar}>
           <i className="fa-solid fa-xmark"></i>
         </button>
@@ -270,8 +290,8 @@ export function Sidebar() {
           {isAdmin && (
             <li className={`nav-group admin-only ${openGroups.manajemen ? 'open' : ''}`}>
               <div className="nav-group-header" onClick={() => toggleGroup('manajemen')}>
-                <i className="fa-solid fa-building-columns"></i>
-                <span>Manajemen Prodi & Dept</span>
+                <i className="fa-solid fa-server"></i>
+                <span>Administrasi Sistem</span>
                 <i className="fa-solid fa-chevron-down caret"></i>
               </div>
               <ul className="nav-sub">
@@ -280,6 +300,9 @@ export function Sidebar() {
                 </li>
                 <li className={tab === 'manajemen-departemen' ? 'active' : ''} onClick={() => handleTabClick('manajemen-departemen')}>
                   <a href="#" onClick={(e) => e.preventDefault()}>Manajemen Departemen</a>
+                </li>
+                <li className={tab === 'manajemen-user' ? 'active' : ''} onClick={() => handleTabClick('manajemen-user')}>
+                  <a href="#" onClick={(e) => e.preventDefault()}>Manajemen User</a>
                 </li>
               </ul>
             </li>

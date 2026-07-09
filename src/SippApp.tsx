@@ -20,6 +20,7 @@ import { Pembelajaran } from './pages/Pembelajaran';
 import { Pembelian } from './pages/Pembelian';
 import { ManajemenProdi } from './pages/ManajemenProdi';
 import { ManajemenDepartemen } from './pages/ManajemenDepartemen';
+import { ManajemenUser } from './pages/ManajemenUser';
 import { Laporan } from './pages/Laporan';
 
 import type { SipItem, Purchase, RenstraProgress } from './types';
@@ -217,10 +218,32 @@ export function SippApp() {
   if (!user) {
     return (
       <div className="login-screen" id="login-screen">
+        {/* Decorative SVG circle pattern — sama persis dengan FilterBar lap-banner */}
+        <svg
+          viewBox="0 0 1000 600"
+          preserveAspectRatio="xMaxYMid slice"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'none',
+            zIndex: 0
+          }}
+        >
+          <circle cx="850" cy="300" r="280" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="3" />
+          <circle cx="730" cy="540" r="340" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.28)" strokeWidth="2.5" />
+          <circle cx="920" cy="-30" r="250" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="2" />
+          <circle cx="620" cy="120" r="160" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
+          <circle cx="150" cy="500" r="200" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
+          <circle cx="50" cy="100" r="120" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+        </svg>
+
         <div className="login-card">
           <div className="login-logo">
-            <span className="logo-sip-large">SIPP</span>
-            <p className="logo-subtitle">Sistem Informasi Perencanaan & Penganggaran</p>
+            <span className="logo-sip-large">SIGAP</span>
+            <p className="logo-subtitle">Sistem Gerak Anggaran & Pencapaian Prodi</p>
             <p className="logo-desc">Fakultas Vokasi — Universitas Negeri Yogyakarta</p>
           </div>
 
@@ -1035,6 +1058,8 @@ export function SippApp() {
             onEditDepartemen={handleOpenEditMdept}
           />
         );
+      case 'manajemen-user':
+        return <ManajemenUser />;
       case 'laporan':
         return <Laporan />;
       default:

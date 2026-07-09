@@ -17,6 +17,10 @@ export function Dashboard() {
   const [prodiSearch, setProdiSearch] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Year selector
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -63,7 +67,13 @@ export function Dashboard() {
     if (!isAdmin && selectedProdi) {
       handleTampilkanLaporan();
     }
-  }, [selectedProdi, isAdmin]);
+  }, [selectedProdi, isAdmin, selectedYear]);
+
+  // Reset data when year changes
+  useEffect(() => {
+    setReportData(null);
+    setActiveTwBreakdown(null);
+  }, [selectedYear]);
 
   const handleTampilkanLaporan = async () => {
     const prodiCode = isAdmin ? selectedProdi : user?.prodi_code;
@@ -76,7 +86,7 @@ export function Dashboard() {
     try {
       const [items, progressData] = await Promise.all([
         getItems('renstra'),
-        getRenstraProgress(prodiCode)
+        getRenstraProgress(prodiCode, undefined, selectedYear)
       ]);
 
       const ikuItems = items.filter(it => it.level === 4);
@@ -308,7 +318,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* 2. ALWAYS VISIBLE BANNER (Vibrant Ocean Blue Gradient, Rounded Corners, Soft Shadow) */}
+      {/* 2. ALWAYS VISIBLE BANNER */}
       <div className="lap-banner" style={{
         background: 'linear-gradient(135deg, #0072ff 0%, #00bfff 100%)',
         backdropFilter: 'blur(20px)',
@@ -319,7 +329,6 @@ export function Dashboard() {
         position: 'relative',
         marginBottom: '24px',
         boxShadow: '0 20px 40px -15px rgba(0, 114, 255, 0.4)',
-        overflow: 'hidden',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -359,7 +368,7 @@ export function Dashboard() {
             fontWeight: 600, 
             color: '#64ffda' 
           }}>
-            {isAdmin ? 'Dashboard Kinerja' : `Dashboard Kinerja • ${user?.prodi_code || ''}`} &bull; Periode Aktif
+            {isAdmin ? 'Dashboard Kinerja' : `Dashboard Kinerja • ${user?.prodi_code || ''}`} &bull; Periode {selectedYear}
           </span>
           <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
             Pelaporan Capaian Kinerja Utama
@@ -378,9 +387,48 @@ export function Dashboard() {
           </div>
         </div>
         <div style={{ zIndex: 2, minWidth: '220px', textAlign: 'center' }}>
-          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', color: '#ffffff', opacity: 0.9, fontWeight: 700 }}>Tahun Anggaran</div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e3a8a', background: '#ffffff', padding: '12px 24px', borderRadius: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15)' }}>
-            <i className="fa-solid fa-calendar-days" style={{ color: '#0284c7' }}></i> PERIODE 2026
+          {/* Year Picker — Styled Select */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', color: '#ffffff', opacity: 0.9, fontWeight: 700 }}>Tahun Anggaran</div>
+            <div style={{ position: 'relative' }}>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                style={{
+                  appearance: 'none',
+                  fontSize: '1.2rem',
+                  fontWeight: 700,
+                  color: '#1e3a8a',
+                  background: '#ffffff',
+                  padding: '12px 40px 12px 20px',
+                  borderRadius: '16px',
+                  border: 'none',
+                  boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  outline: 'none',
+                  minWidth: '160px',
+                  textAlign: 'center'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#f0f9ff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.transform = 'none'; }}
+              >
+                {Array.from({ length: 11 }, (_, i) => currentYear - 5 + i).map(year => (
+                  <option key={year} value={year}>
+                    PERIODE {year}
+                  </option>
+                ))}
+              </select>
+              <i className="fa-solid fa-chevron-down" style={{ 
+                position: 'absolute', 
+                right: '16px', 
+                top: '50%', 
+                transform: 'translateY(-50%)', 
+                color: '#64748b', 
+                pointerEvents: 'none',
+                fontSize: '0.9rem'
+              }}></i>
+            </div>
           </div>
         </div>
       </div>
@@ -744,7 +792,7 @@ export function Dashboard() {
                   <div style={{ flex: 1, paddingRight: '16px' }}>
                     <h4 style={{ fontSize: '1.15rem', font: 'Outfit', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Triwulan {tw}</h4>
                     <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <i className="fa-regular fa-clock"></i> {tw === 1 ? '01 Jan - 31 Mar' : tw === 2 ? '01 Apr - 30 Jun' : tw === 3 ? '01 Jul - 30 Sep' : '01 Oct - 31 Dec'} 2026
+                      <i className="fa-regular fa-clock"></i> {tw === 1 ? `01 Jan - 31 Mar` : tw === 2 ? `01 Apr - 30 Jun` : tw === 3 ? `01 Jul - 30 Sep` : `01 Okt - 31 Des`} {selectedYear}
                     </div>
                     <div style={{ display: 'flex', gap: '6px', marginBottom: '24px', flexWrap: 'wrap' }}>
                       <span className="badge" style={{ background: stats.pct === 100 ? '#eff6ff' : '#f1f5f9', color: stats.pct === 100 ? '#1d4ed8' : '#475569', border: stats.pct === 100 ? '1px solid #bfdbfe' : '1px solid #cbd5e1', fontWeight: 600, fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px' }}>
