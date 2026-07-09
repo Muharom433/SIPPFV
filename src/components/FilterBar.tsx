@@ -159,7 +159,7 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           </p>
         </div>
 
-        {/* 2. ACTION BUTTONS INSIDE BANNER (High Contrast Premium Solid Buttons) */}
+        {/* 2. ACTION BUTTONS INSIDE BANNER (Premium Glassmorphic Buttons) */}
         <div style={{ 
           zIndex: 2, 
           display: 'flex', 
@@ -174,26 +174,27 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
               id="btn-import-renstra"
               onClick={onImportClick}
               style={{
-                background: '#ffffff',
-                color: '#0072ff',
-                border: 'none',
+                background: 'rgba(255, 255, 255, 0.15)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
                 borderRadius: '12px',
                 padding: '10px 20px',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: '0.85rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 transition: 'all 0.2s',
                 cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f1f5f9';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
                 e.currentTarget.style.transform = 'none';
               }}
             >
@@ -206,26 +207,27 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
               id="btn-export-renstra"
               onClick={onExportClick}
               style={{
-                background: '#10b981',
+                background: 'rgba(255, 255, 255, 0.15)',
                 color: '#ffffff',
-                border: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
                 borderRadius: '12px',
                 padding: '10px 20px',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: '0.85rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 15px rgba(16, 185, 129, 0.25)',
                 transition: 'all 0.2s',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.05)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#059669';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#10b981';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
                 e.currentTarget.style.transform = 'none';
               }}
             >
@@ -238,9 +240,9 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
               id="btn-add-main"
               onClick={onAddClick}
               style={{
-                background: '#f97316',
+                background: 'rgba(255, 255, 255, 0.25)',
                 color: '#ffffff',
-                border: 'none',
+                border: '1px solid rgba(255, 255, 255, 0.4)',
                 borderRadius: '12px',
                 padding: '10px 20px',
                 fontWeight: 700,
@@ -248,16 +250,17 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 15px rgba(249, 115, 22, 0.35)',
                 transition: 'all 0.2s',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                backdropFilter: 'blur(12px)',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#ea580c';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = '#f97316';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
                 e.currentTarget.style.transform = 'none';
               }}
             >
