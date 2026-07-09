@@ -305,18 +305,7 @@ export function Dashboard() {
 
   return (
     <div className="view" id="view-dashboard">
-      {/* 1. Page Title */}
-      <div className="section-head" style={{ marginBottom: '24px' }}>
-        <div>
-          <h2><i className="fa-solid fa-chart-bar"></i> Dashboard Kinerja</h2>
-          <p className="sub-text">
-            {isAdmin 
-              ? 'Pantau progress pengisian data Renstra per Prodi' 
-              : `Grafik dan progress capaian Renstra untuk ${user?.prodi_name || user?.prodi_code || 'Program Studi Anda'}`
-            }
-          </p>
-        </div>
-      </div>
+
 
       {/* 2. ALWAYS VISIBLE BANNER */}
       <div className="lap-banner" style={{
