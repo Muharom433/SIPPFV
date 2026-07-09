@@ -1,0 +1,560 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useAuth, useApp } from '../contexts/AuthContext';
+import { getItems } from '../services/items.service';
+import { getRenstraProgress } from '../services/renstra.service';
+import { buildTree } from '../utils/helpers';
+import type { SipItem, RenstraProgress, TreeNode } from '../types';
+import Chart from 'chart.js/auto';
+
+export function Laporan() {
+  const { user } = useAuth();
+  const { prodiLinks } = useApp();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartInstance = useRef<any>(null);
+
+  const [selectedProdi, setSelectedProdi] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [reportData, setReportData] = useState<{
+    items: SipItem[];
+    progress: RenstraProgress[];
+    totalIku: number;
+    totalCompleted: number;
+    totalIncomplete: number;
+    overallPct: number;
+    twStats: Record<number, { completed: number; dataDukung: number; pct: number }>;
+  } | null>(null);
+
+  const [activeTwBreakdown, setActiveTwBreakdown] = useState<number | null>(null);
+  const [expandedBidangs, setExpandedBidangs] = useState<Record<number, boolean>>({});
+  const breakdownRef = useRef<HTMLDivElement>(null);
+
+  const toggleBidang = (id: number) => {
+    setExpandedBidangs(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const isAdmin = user?.role === 'admin';
+
+  // Set default selected prodi on mount or when user context changes
+  useEffect(() => {
+    if (!isAdmin && user?.prodi_code) {
+      setSelectedProdi(user.prodi_code);
+    }
+  }, [user, isAdmin]);
+
+  // Load report data automatically for standard user
+  useEffect(() => {
+    if (!isAdmin && selectedProdi) {
+      handleTampilkanLaporan();
+    }
+  }, [selectedProdi, isAdmin]);
+
+  const handleTampilkanLaporan = async () => {
+    const prodiCode = isAdmin ? selectedProdi : user?.prodi_code;
+    if (!prodiCode) {
+      alert('Pilih Program Studi terlebih dahulu.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const [items, progressData] = await Promise.all([
+        getItems('renstra'),
+        getRenstraProgress(prodiCode)
+      ]);
+
+      const ikuItems = items.filter(it => it.level === 4);
+      const totalIkuCount = ikuItems.length;
+
+      if (totalIkuCount === 0) {
+        alert('Belum ada data indikator (Level 4) pada Renstra.');
+        setLoading(false);
+        return;
+      }
+
+      const isComplete = (itemId: number, tw: number) => {
+        const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
+        if (!p) return false;
+        return !!(p.capaian?.trim() && 
+                  p.progress?.trim() && 
+                  p.issues?.trim() && 
+                  p.strategy?.trim() && 
+                  p.supporting_data_link?.trim());
+      };
+
+      const countDataDukung = (itemId: number, tw: number) => {
+        const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
+        return (p && p.supporting_data_link?.trim()) ? 1 : 0;
+      };
+
+      const twStats: Record<number, { completed: number; dataDukung: number; pct: number }> = {
+        1: { completed: 0, dataDukung: 0, pct: 0 },
+        2: { completed: 0, dataDukung: 0, pct: 0 },
+        3: { completed: 0, dataDukung: 0, pct: 0 },
+        4: { completed: 0, dataDukung: 0, pct: 0 }
+      };
+
+      let totalCompletedAllTws = 0;
+
+      for (let tw = 1; tw <= 4; tw++) {
+        let completedCount = 0;
+        let dataDukungCount = 0;
+
+        ikuItems.forEach(iku => {
+          if (isComplete(iku.id, tw)) completedCount++;
+          dataDukungCount += countDataDukung(iku.id, tw);
+        });
+
+        const pct = Math.round((completedCount / totalIkuCount) * 100);
+        twStats[tw] = {
+          completed: completedCount,
+          dataDukung: dataDukungCount,
+          pct: pct
+        };
+
+        totalCompletedAllTws += completedCount;
+      }
+
+      const overallPct = Math.round((totalCompletedAllTws / (totalIkuCount * 4)) * 100);
+
+      setReportData({
+        items,
+        progress: progressData,
+        totalIku: totalIkuCount,
+        totalCompleted: totalCompletedAllTws,
+        totalIncomplete: (totalIkuCount * 4) - totalCompletedAllTws,
+        overallPct,
+        twStats
+      });
+
+      setActiveTwBreakdown(null);
+    } catch (err: any) {
+      alert('Gagal memuat laporan: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Re-render chart whenever reportData changes
+  useEffect(() => {
+    if (!reportData || !canvasRef.current) return;
+
+    if (chartInstance.current) {
+      chartInstance.current.destroy();
+    }
+
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+    gradient.addColorStop(0, 'rgba(2, 132, 199, 0.25)');
+    gradient.addColorStop(1, 'rgba(2, 132, 199, 0.00)');
+
+    chartInstance.current = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['TW 1', 'TW 2', 'TW 3', 'TW 4'],
+        datasets: [{
+          label: 'Kelengkapan (%)',
+          data: [
+            reportData.twStats[1].pct,
+            reportData.twStats[2].pct,
+            reportData.twStats[3].pct,
+            reportData.twStats[4].pct
+          ],
+          borderColor: '#0284c7',
+          borderWidth: 3,
+          pointBackgroundColor: '#0284c7',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8,
+          tension: 0.35,
+          fill: true,
+          backgroundColor: gradient
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: { callback: (v: any) => v + '%', font: { size: 11, weight: 500 } },
+            grid: { color: 'rgba(0,0,0,0.05)' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { font: { size: 11, weight: 600 } }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            padding: 10,
+            backgroundColor: '#0f172a',
+            titleFont: { size: 12, weight: 700 },
+            bodyFont: { size: 12 },
+            callbacks: {
+              label: (ctx: any) => `Kelengkapan: ${ctx.parsed.y}%`
+            }
+          }
+        }
+      }
+    });
+
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.destroy();
+      }
+    };
+  }, [reportData]);
+
+  // Handle triwulan breakdown rendering
+  const getBreakdownRows = () => {
+    if (!reportData || activeTwBreakdown === null) return [];
+
+    const progressData = reportData.progress.filter(x => x.triwulan === activeTwBreakdown);
+    const { map } = buildTree(reportData.items);
+
+    const bidangNodes = Object.values(map).filter(node => node.level === 2);
+    bidangNodes.sort((a, b) => {
+      const aNum = parseInt(a.description) || a.id;
+      const bNum = parseInt(b.description) || b.id;
+      return aNum - bNum;
+    });
+
+    const progressMap: Record<number, RenstraProgress> = {};
+    progressData.forEach(p => { progressMap[p.item_id] = p; });
+
+    const isIKUComplete = (itemId: number) => {
+      const p = progressMap[itemId];
+      if (!p) return false;
+      return !!(p.capaian?.trim() && p.progress?.trim() &&
+                p.issues?.trim() && p.strategy?.trim() &&
+                p.supporting_data_link?.trim());
+    };
+
+    const getNodeStats = (node: TreeNode): { total: number; filled: number; ikuItems: any[] } => {
+      if (node.level === 4) {
+        const complete = isIKUComplete(node.id);
+        return { total: 1, filled: complete ? 1 : 0, ikuItems: [{ node, complete, prog: progressMap[node.id] }] };
+      }
+      let total = 0, filled = 0, ikuItems: any[] = [];
+      (node.children || []).forEach(child => {
+        const cs = getNodeStats(child);
+        total += cs.total;
+        filled += cs.filled;
+        ikuItems = ikuItems.concat(cs.ikuItems);
+      });
+      return { total, filled, ikuItems };
+    };
+
+    return bidangNodes.map((bidang, i) => {
+      const stats = getNodeStats(bidang);
+      const pct = stats.total > 0 ? Math.round((stats.filled / stats.total) * 100) : 0;
+      return {
+        id: bidang.id,
+        name: bidang.description,
+        code: bidang.code || `B${i + 1}`,
+        total: stats.total,
+        filled: stats.filled,
+        pct,
+        ikuItems: stats.ikuItems,
+      };
+    });
+  };
+
+  const handleLihatRincian = (tw: number) => {
+    setExpandedBidangs({});
+    setActiveTwBreakdown(tw);
+    setTimeout(() => {
+      breakdownRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const pctColor = (pct: number) => 
+    pct === 100 ? '#22c55e' : pct >= 75 ? '#3b82f6' : pct >= 50 ? '#f97316' : pct > 0 ? '#ef4444' : '#94a3b8';
+
+  return (
+    <div className="view" id="view-laporan">
+      <div className="section-head">
+        <div>
+          <h2><i className="fa-solid fa-chart-bar"></i> Laporan Kelengkapan Renstra</h2>
+          <p className="sub-text">Pantau progress pengisian data Renstra per Prodi</p>
+        </div>
+      </div>
+
+      {isAdmin && (
+        <div className="filter-bar" style={{ marginBottom: '20px' }}>
+          <div className="fg" style={{ flex: 1, maxWidth: '400px' }}>
+            <label className="fg-label">Program Studi</label>
+            <select 
+              id="lap-flt-prodi" 
+              className="flt-select"
+              value={selectedProdi}
+              onChange={(e) => setSelectedProdi(e.target.value)}
+            >
+              <option value="">-- Pilih Prodi --</option>
+              {prodiLinks.map((p) => (
+                <option key={p.id} value={p.prodi_code}>
+                  {p.prodi_code} — {p.prodi_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button 
+            id="btn-tampilkan-laporan" 
+            className="btn btn-primary" 
+            disabled={loading}
+            onClick={handleTampilkanLaporan}
+            style={{ alignSelf: 'flex-end', height: '38px' }}
+          >
+            {loading ? (
+              <><i className="fa-solid fa-spinner fa-spin"></i> Memuat...</>
+            ) : (
+              <><i className="fa-solid fa-chart-simple"></i> Tampilkan Laporan</>
+            )}
+          </button>
+        </div>
+      )}
+
+      {!reportData && !loading && (
+        <div id="lap-empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '360px', color: 'var(--muted)', textAlign: 'center', padding: '48px 24px' }}>
+          <i className="fa-solid fa-filter" style={{ fontSize: '2.8rem', marginBottom: '16px', opacity: 0.25 }}></i>
+          <h3 style={{ marginBottom: '8px', color: 'var(--text)', opacity: 0.55, fontSize: '1.1rem' }}>Pilih Prodi</h3>
+          <p style={{ maxWidth: '380px', lineHeight: 1.65, fontSize: '0.9rem' }}>Pilih Program Studi di atas, lalu klik <strong>Tampilkan Laporan</strong> untuk membuka dashboard kelengkapan Renstra.</p>
+        </div>
+      )}
+
+      {reportData && (
+        <div id="lap-content">
+          {/* Banner */}
+          <div className="lap-banner" style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', borderRadius: 'var(--radius)', padding: '32px', color: 'var(--white)', position: 'relative', marginBottom: '24px', boxShadow: 'var(--shadow)', overflow: 'hidden', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px', flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
+              <span style={{ fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 600 }}>Dashboard Kinerja &bull; Periode Aktif</span>
+              <h2 style={{ fontSize: '1.8rem', margin: '12px 0 8px', fontWeight: 700, color: '#fff' }}>Pelaporan Capaian Kinerja Utama</h2>
+              <p style={{ fontSize: '0.9rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.6, marginBottom: '20px' }}>
+                Pantau dan lengkapi pelaporan realisasi IKU Anda secara bertahap. Pastikan setiap data dukung sesuai dengan standar validasi nasional.
+              </p>
+              <div style={{ maxWidth: '450px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '6px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.9 }}>
+                  <span>Penyelesaian Laporan Tahunan</span>
+                  <span>{reportData.overallPct}%</span>
+                </div>
+                <div className="progress-bar-wrap" style={{ background: 'rgba(255,255,255,0.15)', height: '8px' }}>
+                  <div className="progress-bar-fill" style={{ width: `${reportData.overallPct}%`, background: '#22c55e' }}></div>
+                </div>
+              </div>
+            </div>
+            <div style={{ zIndex: 2, background: 'rgba(255,255,255,0.06)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', minWidth: '220px', textAlign: 'center' }}>
+              <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', opacity: 0.8, marginBottom: '8px' }}>Tahun Anggaran</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text)', background: 'var(--white)', padding: '8px 16px', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.15)' }}>
+                <i className="fa-solid fa-calendar-days" style={{ color: 'var(--blue)' }}></i> PERIODE 2026
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="stats-grid" style={{ marginBottom: '24px' }}>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}><i className="fa-solid fa-list-check"></i></div>
+              <div>
+                <div className="stat-label">Total IKU</div>
+                <div className="stat-val">{reportData.totalIku}</div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#22c55e,#15803d)' }}><i className="fa-solid fa-circle-check"></i></div>
+              <div>
+                <div className="stat-label">Sudah Dilaporkan (Lengkap)</div>
+                <div className="stat-val">{reportData.totalCompleted}</div>
+              </div>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon" style={{ background: 'linear-gradient(135deg,#ef4444,#b91c1c)' }}><i className="fa-solid fa-circle-xmark"></i></div>
+              <div>
+                <div className="stat-label">Belum Lengkap</div>
+                <div className="stat-val">{reportData.totalIncomplete}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Line Chart */}
+          <div style={{ background: 'var(--white)', borderRadius: 'var(--radius)', border: '1px solid var(--border)', padding: '24px', marginBottom: '24px', boxShadow: 'var(--shadow)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', color: 'var(--text)', fontWeight: 700 }}>Trend Capaian Tahunan</h3>
+                <p style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '2px' }}>Progress per Triwulan Dalam Persentase</p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted)', background: 'var(--surface)', padding: '4px 10px', borderRadius: '99px', border: '1px solid var(--border)' }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--blue)' }}></span> Capaian Real (%)
+              </div>
+            </div>
+            <div style={{ position: 'relative', height: '280px' }}>
+              <canvas ref={canvasRef}></canvas>
+            </div>
+          </div>
+
+          {/* Triwulans Cards Grid */}
+          <div style={{ margin: '28px 0 16px' }}>
+            <h3 style={{ fontSize: '1.1rem', color: 'var(--text)', fontWeight: 700 }}>Kelengkapan per Triwulan</h3>
+          </div>
+          
+          <div className="lap-tw-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '28px' }}>
+            {[1, 2, 3, 4].map(tw => {
+              const stats = reportData.twStats[tw];
+              const circumference = 213.6;
+              const offset = circumference - (stats.pct / 100) * circumference;
+
+              return (
+                <div key={tw} className="lap-tw-card" style={{ background: 'var(--white)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '24px', boxShadow: 'var(--shadow)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative' }}>
+                  <div style={{ flex: 1, paddingRight: '16px' }}>
+                    <h4 style={{ fontSize: '1.15rem', font: 'Outfit', fontWeight: 700, color: 'var(--text)', marginBottom: '4px' }}>Triwulan {tw}</h4>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <i className="fa-regular fa-clock"></i> {tw === 1 ? '01 Jan - 31 Mar' : tw === 2 ? '01 Apr - 30 Jun' : tw === 3 ? '01 Jul - 30 Sep' : '01 Oct - 31 Dec'} 2026
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                      <span className="badge" style={{ background: stats.pct === 100 ? '#eff6ff' : '#f1f5f9', color: stats.pct === 100 ? '#1d4ed8' : '#475569', border: stats.pct === 100 ? '1px solid #bfdbfe' : '1px solid #cbd5e1', fontWeight: 600, fontSize: '0.7rem', padding: '3px 8px', borderRadius: '4px' }}>
+                        {stats.pct === 100 ? `TW${tw} SELESAI` : 'DRAF'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text)' }}>
+                      DATA DUKUNG TERKUMPUL
+                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--blue)', marginTop: '2px' }}>{stats.dataDukung} / {reportData.totalIku} Indikator</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', minWidth: '120px' }}>
+                    {/* Circle SVG */}
+                    <div className="circular-progress-wrap" style={{ position: 'relative', width: '80px', height: '80px' }}>
+                      <svg width="80" height="80" viewBox="0 0 80 80">
+                        <circle cx="40" cy="40" r="34" stroke="#e2e8f0" strokeWidth="6" fill="transparent" />
+                        <circle cx="40" cy="40" r="34" stroke="var(--blue)" strokeWidth="6" fill="transparent" 
+                                strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dashoffset .5s ease' }} />
+                      </svg>
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.05rem', color: 'var(--text)' }}>
+                        {stats.pct}%
+                      </div>
+                    </div>
+                    <button 
+                      className="btn btn-primary btn-sm" 
+                      onClick={() => handleLihatRincian(tw)}
+                      style={{ width: '100%', justifyContent: 'center', fontWeight: 600, fontSize: '0.78rem', padding: '6px 12px', background: '#0f172a', borderColor: '#0f172a', borderRadius: '6px' }}
+                    >
+                      LIHAT RINCIAN <i className="fa-solid fa-arrow-right" style={{ marginLeft: '4px', fontSize: '0.7rem' }}></i>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Breakdown Section */}
+          {activeTwBreakdown !== null && (
+            <div ref={breakdownRef} id="lap-breakdown-section" style={{ scrollMarginTop: '80px' }}>
+              <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: '32px 0 24px' }} />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', color: 'var(--text)', fontWeight: 700 }}>Rincian Ketidaklengkapan Triwulan {activeTwBreakdown}</h3>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>Daftar IKU yang belum diisi lengkap beserta field yang masih kosong</p>
+                </div>
+                <button 
+                  className="btn btn-secondary btn-sm" 
+                  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+                  style={{ fontSize: '0.75rem', borderRadius: '6px' }}
+                >
+                  <i className="fa-solid fa-arrow-up"></i> Kembali ke Atas
+                </button>
+              </div>
+
+              <div className="tbl-wrap" style={{ marginBottom: '32px' }}>
+                <table className="htable" id="tbl-laporan-breakdown">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '32px' }}></th>
+                      <th className="text-left">Bidang</th>
+                      <th style={{ width: '220px' }} className="text-left">Progress</th>
+                      <th style={{ width: '80px' }} className="text-center">%</th>
+                      <th style={{ width: '90px' }} className="text-center">Terisi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getBreakdownRows().map(bidang => {
+                      const clr = pctColor(bidang.pct);
+                      const icon = bidang.pct === 100
+                        ? <i className="fa-solid fa-circle-check" style={{ color: '#22c55e' }}></i>
+                        : <i className="fa-solid fa-circle-half-stroke" style={{ color: '#f97316' }}></i>;
+
+                      const incomplete = bidang.ikuItems.filter(it => !it.complete);
+                      const isExpanded = !!expandedBidangs[bidang.id];
+
+                      return (
+                        <React.Fragment key={bidang.id}>
+                          <tr 
+                            className="lap-row-bidang" 
+                            onClick={() => toggleBidang(bidang.id)}
+                            style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
+                          >
+                            <td className="text-center">{icon}</td>
+                            <td className="text-left">
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                <strong>{bidang.code} — {bidang.name}</strong>
+                                <i className={`fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ color: 'var(--muted)', fontSize: '0.75rem' }}></i>
+                              </span>
+                            </td>
+                            <td>
+                              <div className="progress-bar-wrap">
+                                <div className="progress-bar-fill" style={{ width: `${bidang.pct}%`, background: clr }}></div>
+                              </div>
+                            </td>
+                            <td className="text-center" style={{ color: clr, fontWeight: 700 }}>{bidang.pct}%</td>
+                            <td className="text-center" style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{bidang.filled}/{bidang.total}</td>
+                          </tr>
+                          
+                          {isExpanded && incomplete.map(({ node, prog }: any) => {
+                            const missing: string[] = [];
+                            if (!prog?.capaian?.trim())               missing.push('Capaian');
+                            if (!prog?.progress?.trim())              missing.push('Progress');
+                            if (!prog?.issues?.trim())                missing.push('Kendala');
+                            if (!prog?.strategy?.trim())              missing.push('Strategi');
+                            if (!prog?.supporting_data_link?.trim())  missing.push('Data Dukung');
+
+                            return (
+                              <tr key={node.id} className="lap-row-iku">
+                                <td className="text-center"><i className="fa-solid fa-triangle-exclamation" style={{ color: '#f97316', fontSize: '0.8rem' }}></i></td>
+                                <td className="text-left" style={{ paddingLeft: '24px' }}>
+                                  {node.code ? <span style={{ color: 'var(--muted)', marginRight: '6px' }}>{node.code}</span> : ''}
+                                  {node.description}
+                                </td>
+                                <td colSpan={3} className="text-left">
+                                  <span style={{ color: 'var(--muted)' }}>Belum diisi: </span>
+                                  <strong style={{ color: '#ef4444' }}>{missing.join(', ')}</strong>
+                                </td>
+                              </tr>
+                            );
+                          })}
+
+                          {isExpanded && incomplete.length === 0 && bidang.total > 0 && (
+                            <tr className="lap-row-iku">
+                              <td></td>
+                              <td colSpan={4} className="text-left" style={{ paddingLeft: '24px', color: '#22c55e', fontSize: '0.82rem' }}>
+                                <i className="fa-solid fa-check"></i> Semua IKU sudah diisi lengkap!
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

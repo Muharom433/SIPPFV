@@ -546,56 +546,266 @@
 
         <!-- ── LAPORAN ───────────────────────────────────────── -->
         <div class="view" id="view-laporan" style="display:none">
-          <div class="dash-banner">
-            <div class="dash-banner-text">
-              <h2><i class="fa-solid fa-chart-bar"></i> Laporan Realisasi Anggaran</h2>
-              <p>Ringkasan laporan keuangan dan penyerapan anggaran Tahun 2026</p>
-            </div>
-          </div>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon si-blue"><i class="fa-solid fa-money-check"></i></div>
-              <div>
-                <div class="stat-label">Pagu Anggaran</div>
-                <div class="stat-val" id="lap-pagu">Memuat...</div>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon si-green"><i class="fa-solid fa-circle-check"></i></div>
-              <div>
-                <div class="stat-label">Realisasi</div>
-                <div class="stat-val" id="lap-realisasi">Memuat...</div>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon si-orange"><i class="fa-solid fa-hourglass-half"></i></div>
-              <div>
-                <div class="stat-label">Sisa Anggaran</div>
-                <div class="stat-val" id="lap-sisa">Memuat...</div>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon si-purple"><i class="fa-solid fa-percent"></i></div>
-              <div>
-                <div class="stat-label">Persentase Realisasi</div>
-                <div class="stat-val" id="lap-persen">Memuat...</div>
-              </div>
+          <div class="section-head">
+            <div>
+              <h2><i class="fa-solid fa-chart-bar"></i> Laporan Kelengkapan Renstra</h2>
+              <p class="sub-text">Pantau progress pengisian data Renstra per Prodi</p>
             </div>
           </div>
 
-          <div class="tbl-wrap" style="margin-top:24px">
-            <table class="ftable" id="tbl-laporan">
-              <thead>
-                <tr>
-                  <th class="text-left">Sumber Dana</th>
-                  <th class="text-right">Pagu</th>
-                  <th class="text-right">Realisasi</th>
-                  <th class="text-right">Sisa</th>
-                  <th class="text-center">%</th>
-                </tr>
-              </thead>
-              <tbody id="tbody-laporan"></tbody>
-            </table>
+          <!-- Filter Bar -->
+          <div class="filter-bar" style="margin-bottom:20px;">
+            <div class="fg" style="flex: 1; max-width: 400px;">
+              <label class="fg-label">Program Studi</label>
+              <select id="lap-flt-prodi" class="flt-select">
+                <option value="">-- Pilih Prodi --</option>
+              </select>
+            </div>
+            <button id="btn-tampilkan-laporan" class="btn btn-primary" style="align-self:flex-end; height: 38px;">
+              <i class="fa-solid fa-chart-simple"></i> Tampilkan Laporan
+            </button>
+          </div>
+
+          <!-- Empty State -->
+          <div id="lap-empty-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:360px;color:var(--muted);text-align:center;padding:48px 24px;">
+            <i class="fa-solid fa-filter" style="font-size:2.8rem;margin-bottom:16px;opacity:0.25;"></i>
+            <h3 style="margin-bottom:8px;color:var(--text);opacity:0.55;font-size:1.1rem;">Pilih Prodi</h3>
+            <p style="max-width:380px;line-height:1.65;font-size:0.9rem;">Pilih Program Studi di atas, lalu klik <strong>Tampilkan Laporan</strong> untuk membuka dashboard kelengkapan Renstra.</p>
+          </div>
+
+          <!-- Report Content (hidden until filter applied) -->
+          <div id="lap-content" style="display:none;">
+
+            <!-- Banner Utama (Sesuai Gambar 2 & 3) -->
+            <div class="lap-banner" style="background: linear-gradient(135deg, #0f172a, #1e293b); border-radius: var(--radius); padding: 32px; color: var(--white); position: relative; margin-bottom: 24px; box-shadow: var(--shadow); overflow: hidden; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 280px; z-index: 2;">
+                <span style="font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 99px; border: 1px solid rgba(255,255,255,0.15); font-weight: 600;">Dashboard Kinerja &bull; Periode Aktif</span>
+                <h2 style="font-size: 1.8rem; margin: 12px 0 8px; font-weight: 700; color: #fff;">Pelaporan Capaian Kinerja Utama</h2>
+                <p style="font-size: 0.9rem; opacity: 0.8; max-width: 600px; line-height: 1.6; margin-bottom: 20px;">
+                  Pantau dan lengkapi pelaporan realisasi IKU Anda secara bertahap. Pastikan setiap data dukung sesuai dengan standar validasi nasional.
+                </p>
+                <div style="max-width: 450px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.9;">
+                    <span>Penyelesaian Laporan Tahunan</span>
+                    <span id="lap-overall-pct-banner">0%</span>
+                  </div>
+                  <div class="progress-bar-wrap" style="background: rgba(255,255,255,0.15); height: 8px;">
+                    <div id="lap-overall-bar" class="progress-bar-fill" style="width: 0%; background: #22c55e;"></div>
+                  </div>
+                </div>
+              </div>
+              <div style="z-index: 2; background: rgba(255,255,255,0.06); padding: 20px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); min-width: 220px; text-align: center;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.8; margin-bottom: 8px;">Tahun Anggaran</div>
+                <div style="font-size: 1.25rem; font-weight: 700; color: #fff; background: var(--white); color: var(--text); padding: 8px 16px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.15);">
+                  <i class="fa-solid fa-calendar-days" style="color: var(--blue);"></i> PERIODE 2026
+                </div>
+              </div>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="stats-grid" style="margin-bottom:24px;">
+              <div class="stat-card">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);"><i class="fa-solid fa-list-check"></i></div>
+                <div>
+                  <div class="stat-label">Total IKU</div>
+                  <div class="stat-val" id="lap-total-iku">—</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#22c55e,#15803d);"><i class="fa-solid fa-circle-check"></i></div>
+                <div>
+                  <div class="stat-label">Sudah Dilaporkan (Lengkap)</div>
+                  <div class="stat-val" id="lap-filled-iku">—</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#ef4444,#b91c1c);"><i class="fa-solid fa-circle-xmark"></i></div>
+                <div>
+                  <div class="stat-label">Belum Lengkap</div>
+                  <div class="stat-val" id="lap-empty-iku">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Row (Sumbu X: TW 1 - 4) -->
+            <div style="background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:24px;margin-bottom:24px;box-shadow:var(--shadow);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div>
+                  <h3 id="lap-chart-title" style="font-size:1.15rem;color:var(--text);font-weight:700;">Trend Capaian Tahunan</h3>
+                  <p style="font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;">Progress per Triwulan Dalam Persentase</p>
+                </div>
+                <div style="display:flex;align-items:center;gap:6px;font-size:0.78rem;font-weight:600;color:var(--muted);background:var(--surface);padding:4px 10px;border-radius:99px;border:1px solid var(--border);">
+                  <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blue);"></span> Capaian Real (%)
+                </div>
+              </div>
+              <div style="position:relative;height:280px;">
+                <canvas id="chart-laporan"></canvas>
+              </div>
+            </div>
+
+            <!-- Triwulan Cards Grid (Sesuai Gambar 2 & 3 - 2x2 Layout) -->
+            <div style="margin:28px 0 16px;">
+              <h3 style="font-size:1.1rem;color:var(--text);font-weight:700;">Kelengkapan per Triwulan</h3>
+            </div>
+            
+            <div class="lap-tw-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px; margin-bottom: 28px;">
+              
+              <!-- Card TW 1 -->
+              <div class="lap-tw-card" style="background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; position: relative;">
+                <div style="flex: 1; padding-right: 16px;">
+                  <h4 style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 4px;">Triwulan 1</h4>
+                  <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 4px;">
+                    <i class="fa-regular fa-clock"></i> 01 Jan 2026 &mdash; 31 Mar 2026
+                  </div>
+                  <div style="display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap;">
+                    <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px;">DRAF</span>
+                    <span class="badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 600; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px;">TW1 SELESAI</span>
+                  </div>
+                  <div style="font-size: 0.78rem; font-weight: 600; color: var(--text);">
+                    DATA DUKUNG TERKUMPUL
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--blue); margin-top: 2px;" id="lap-tw1-counts">0 / 0 Indikator</div>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 120px;">
+                  <!-- Circular Progress SVG -->
+                  <div class="circular-progress-wrap" style="position: relative; width: 80px; height: 80px;">
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                      <circle cx="40" cy="40" r="34" stroke="#e2e8f0" stroke-width="6" fill="transparent" />
+                      <circle id="circle-tw1-fill" cx="40" cy="40" r="34" stroke="var(--blue)" stroke-width="6" fill="transparent" 
+                              stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .5s ease;" />
+                    </svg>
+                    <div id="circle-tw1-text" style="position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.05rem; color:var(--text);">0%</div>
+                  </div>
+                  <button class="btn btn-primary btn-sm" onclick="showLaporanBreakdown(1)" style="width: 100%; justify-content: center; font-weight: 600; font-size: 0.78rem; padding: 6px 12px; background: #0f172a; border-color: #0f172a; border-radius: 6px;">
+                    LIHAT RINCIAN <i class="fa-solid fa-arrow-right" style="margin-left: 4px; font-size: 0.7rem;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card TW 2 -->
+              <div class="lap-tw-card" style="background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; position: relative;">
+                <div style="flex: 1; padding-right: 16px;">
+                  <h4 style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 4px;">Triwulan 2</h4>
+                  <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 4px;">
+                    <i class="fa-regular fa-clock"></i> 01 Apr 2026 &mdash; 30 Jun 2026
+                  </div>
+                  <div style="display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap;">
+                    <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px;">DRAF</span>
+                  </div>
+                  <div style="font-size: 0.78rem; font-weight: 600; color: var(--text);">
+                    DATA DUKUNG TERKUMPUL
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--blue); margin-top: 2px;" id="lap-tw2-counts">0 / 0 Indikator</div>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 120px;">
+                  <!-- Circular Progress SVG -->
+                  <div class="circular-progress-wrap" style="position: relative; width: 80px; height: 80px;">
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                      <circle cx="40" cy="40" r="34" stroke="#e2e8f0" stroke-width="6" fill="transparent" />
+                      <circle id="circle-tw2-fill" cx="40" cy="40" r="34" stroke="var(--blue)" stroke-width="6" fill="transparent" 
+                              stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .5s ease;" />
+                    </svg>
+                    <div id="circle-tw2-text" style="position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.05rem; color:var(--text);">0%</div>
+                  </div>
+                  <button class="btn btn-primary btn-sm" onclick="showLaporanBreakdown(2)" style="width: 100%; justify-content: center; font-weight: 600; font-size: 0.78rem; padding: 6px 12px; background: #0f172a; border-color: #0f172a; border-radius: 6px;">
+                    LIHAT RINCIAN <i class="fa-solid fa-arrow-right" style="margin-left: 4px; font-size: 0.7rem;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card TW 3 -->
+              <div class="lap-tw-card" style="background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; position: relative;">
+                <div style="flex: 1; padding-right: 16px;">
+                  <h4 style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 4px;">Triwulan 3</h4>
+                  <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 4px;">
+                    <i class="fa-regular fa-clock"></i> 01 Jul 2026 &mdash; 30 Sep 2026
+                  </div>
+                  <div style="display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap;">
+                    <span class="badge" style="background: #fdf2f8; color: #9d174d; border: 1px solid #fbcfe8; font-weight: 600; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px;">PERIODE AKTIF</span>
+                  </div>
+                  <div style="font-size: 0.78rem; font-weight: 600; color: var(--text);">
+                    DATA DUKUNG TERKUMPUL
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--blue); margin-top: 2px;" id="lap-tw3-counts">0 / 0 Indikator</div>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 120px;">
+                  <!-- Circular Progress SVG -->
+                  <div class="circular-progress-wrap" style="position: relative; width: 80px; height: 80px;">
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                      <circle cx="40" cy="40" r="34" stroke="#e2e8f0" stroke-width="6" fill="transparent" />
+                      <circle id="circle-tw3-fill" cx="40" cy="40" r="34" stroke="var(--blue)" stroke-width="6" fill="transparent" 
+                              stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .5s ease;" />
+                    </svg>
+                    <div id="circle-tw3-text" style="position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.05rem; color:var(--text);">0%</div>
+                  </div>
+                  <button class="btn btn-primary btn-sm" onclick="showLaporanBreakdown(3)" style="width: 100%; justify-content: center; font-weight: 600; font-size: 0.78rem; padding: 6px 12px; background: #0f172a; border-color: #0f172a; border-radius: 6px;">
+                    LIHAT RINCIAN <i class="fa-solid fa-arrow-right" style="margin-left: 4px; font-size: 0.7rem;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Card TW 4 -->
+              <div class="lap-tw-card" style="background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; position: relative;">
+                <div style="flex: 1; padding-right: 16px;">
+                  <h4 style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 4px;">Triwulan 4</h4>
+                  <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 4px;">
+                    <i class="fa-regular fa-clock"></i> 01 Oct 2026 &mdash; 31 Dec 2026
+                  </div>
+                  <div style="display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap;">
+                    <span class="badge" style="background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; font-weight: 600; font-size: 0.7rem; padding: 3px 8px; border-radius: 4px;"><i class="fa-solid fa-lock" style="margin-right: 3px; font-size: 0.65rem;"></i> DIKUNCI</span>
+                  </div>
+                  <div style="font-size: 0.78rem; font-weight: 600; color: var(--text);">
+                    DATA DUKUNG TERKUMPUL
+                    <div style="font-size: 0.95rem; font-weight: 700; color: var(--blue); margin-top: 2px;" id="lap-tw4-counts">0 / 0 Indikator</div>
+                  </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; min-width: 120px;">
+                  <!-- Circular Progress SVG -->
+                  <div class="circular-progress-wrap" style="position: relative; width: 80px; height: 80px;">
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                      <circle cx="40" cy="40" r="34" stroke="#e2e8f0" stroke-width="6" fill="transparent" />
+                      <circle id="circle-tw4-fill" cx="40" cy="40" r="34" stroke="var(--blue)" stroke-width="6" fill="transparent" 
+                              stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke-linecap="round" style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .5s ease;" />
+                    </svg>
+                    <div id="circle-tw4-text" style="position: absolute; top:0; left:0; width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.05rem; color:var(--text);">0%</div>
+                  </div>
+                  <button class="btn btn-primary btn-sm" onclick="showLaporanBreakdown(4)" style="width: 100%; justify-content: center; font-weight: 600; font-size: 0.78rem; padding: 6px 12px; background: #0f172a; border-color: #0f172a; border-radius: 6px;">
+                    LIHAT RINCIAN <i class="fa-solid fa-arrow-right" style="margin-left: 4px; font-size: 0.7rem;"></i>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Breakdown Table Section (Hidden by default, shown when detail button is clicked) -->
+            <div id="lap-breakdown-section" style="display:none; scroll-margin-top: 80px;">
+              <hr style="border: 0; border-top: 1px solid var(--border); margin: 32px 0 24px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div>
+                  <h3 id="lap-breakdown-title" style="font-size:1.1rem;color:var(--text);font-weight:700;">Rincian Ketidaklengkapan Triwulan 1</h3>
+                  <p style="font-size:0.75rem;color:var(--muted);margin-top:2px;">Daftar IKU yang belum diisi lengkap beserta field yang masih kosong</p>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('lap-content').scrollIntoView({behavior: 'smooth'})" style="font-size: 0.75rem; border-radius: 6px;">
+                  <i class="fa-solid fa-arrow-up"></i> Kembali ke Atas
+                </button>
+              </div>
+
+              <div class="tbl-wrap" style="margin-bottom:32px;">
+                <table class="htable" id="tbl-laporan-breakdown">
+                  <thead>
+                    <tr>
+                      <th style="width:32px"></th>
+                      <th class="text-left">Bidang / IKU</th>
+                      <th style="width:220px" class="text-left">Progress</th>
+                      <th style="width:80px" class="text-center">%</th>
+                      <th style="width:90px" class="text-center">Terisi</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody-laporan-breakdown"></tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1072,7 +1282,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="app.js?v=2.1"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="app.js?v=3.0"></script>
 </body>
 
 </html>

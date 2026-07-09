@@ -276,7 +276,7 @@ function loadTabData(tab) {
   else if (tab === 'pembelian') fetchPurchases();
   else if (tab === 'manajemen-prodi') fetchManajemenProdi();
   else if (tab === 'manajemen-departemen') fetchManajemenDepartemen();
-  else if (tab === 'laporan') loadLaporan();
+  else if (tab === 'laporan') initLaporan();
 }
 
 function renderCurrentView() { loadTabData(S.tab); }
@@ -871,11 +871,13 @@ function renderRenstra(key) {
     const prog = (node.level === 4) ? getProgress(node.id) : null;
 
     // Render target columns as inline inputs where applicable
+    // On Capaian view: Target Fakultas & Target Unit are always read-only
+    // On Tanggung Jawab view: Target Fakultas editable by admin, Target Unit editable when prodi selected
     let targetFakultasHtml = '';
     let targetUnitHtml = '';
 
     if (node.level === 4) {
-      if (S.role === 'admin') {
+      if (!isCapaian && S.role === 'admin') {
         targetFakultasHtml = `<input type="text" class="table-input" value="${escapeHTML(node.target_univ || '')}" onblur="saveTargetFakultas(${node.id}, this.value)">`;
       } else {
         targetFakultasHtml = escapeHTML(node.target_univ || '');
@@ -883,7 +885,7 @@ function renderRenstra(key) {
 
       // Target Unit now comes from progress data
       const progTargetUnit = prog ? (prog.target_unit || '') : '';
-      if (activeProdi) {
+      if (!isCapaian && activeProdi) {
         targetUnitHtml = `<input type="text" class="table-input" value="${escapeHTML(progTargetUnit)}" onblur="saveTargetUnit(${node.id}, this.value)">`;
       } else {
         targetUnitHtml = escapeHTML(progTargetUnit);
@@ -1846,6 +1848,20 @@ function bindForms() {
       capPct = '0';
     }
 
+    const dukungLink = $('mcr-dukung').value.trim();
+
+    // Validasi: Data Dukung (Google Drive) wajib diisi
+    if (!dukungLink) {
+      alert('Data Dukung (Link Google Drive) wajib diisi sebelum menyimpan.');
+      $('mcr-dukung').focus();
+      return;
+    }
+    if (!dukungLink.startsWith('http://') && !dukungLink.startsWith('https://')) {
+      alert('Link Data Dukung harus diawali dengan http:// atau https://');
+      $('mcr-dukung').focus();
+      return;
+    }
+
     const body = {
       item_id: id,
       prodi_code: activeProdi,
@@ -1855,7 +1871,7 @@ function bindForms() {
       progress: $('mcr-progress').value.trim(),
       issues: $('mcr-issues').value.trim(),
       strategy: $('mcr-strategy').value.trim(),
-      supporting_data_link: $('mcr-dukung').value.trim(),
+      supporting_data_link: dukungLink,
       // Preserve existing target_unit and amount
       target_unit: existingProg ? existingProg.target_unit : null,
       amount: existingProg ? existingProg.amount : 0
@@ -2083,8 +2099,388 @@ async function loadSidebarBudget() {
   }
 }
 
-// ─── LAPORAN REALISASI ANGGARAN ───────────────────────────────────────────────
+// ─── LAPORAN KELENGKAPAN RENSTRA ─────────────────────────────────────────────
+let _laporanChart = null; // Chart.js instance
+let _lapCachedItems = []; // Cached master items
+let _lapCachedProgress = []; // Cached progress items across all TWs
+let _lapCachedProdiCode = ''; // Currently selected prodi
+
+// Called when entering the Laporan tab — just set up filters
+function initLaporan() {
+  const sel = $('lap-flt-prodi');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- Pilih Prodi --</option>';
+
+  if (S.role === 'user' && S.prodiCode) {
+    // User: auto-select their prodi, lock it
+    const opt = document.createElement('option');
+    opt.value = S.prodiCode;
+    opt.textContent = S.prodiName || S.prodiCode;
+    opt.selected = true;
+    sel.appendChild(opt);
+    sel.disabled = true;
+    
+    // Auto load for user
+    tampilkanLaporan();
+  } else {
+    // Admin: show all prodis
+    sel.disabled = false;
+    S.prodiLinks.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.prodi_code;
+      opt.textContent = `${p.prodi_code} — ${p.prodi_name}`;
+      sel.appendChild(opt);
+    });
+    
+    // Select previously selected prodi if exists
+    if (_lapCachedProdiCode) {
+      sel.value = _lapCachedProdiCode;
+      tampilkanLaporan();
+    }
+  }
+
+  // Bind tampilkan button (only once)
+  const btn = $('btn-tampilkan-laporan');
+  if (btn && !btn._bound) {
+    btn.addEventListener('click', tampilkanLaporan);
+    btn._bound = true;
+  }
+}
+
+async function tampilkanLaporan() {
+  const prodiCode = $('lap-flt-prodi').value;
+  if (!prodiCode) {
+    alert('Pilih Program Studi terlebih dahulu.');
+    return;
+  }
+
+  _lapCachedProdiCode = prodiCode;
+
+  const btn = $('btn-tampilkan-laporan');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memuat...';
+
+  try {
+    // Fetch both the items list and progress list across all triwulans in parallel
+    const [items, progressData] = await Promise.all([
+      api('GET', '/api/items?type=renstra'),
+      api('GET', `/api/renstra-progress?prodi_code=${encodeURIComponent(prodiCode)}`)
+    ]);
+
+    _lapCachedItems = items;
+    _lapCachedProgress = progressData;
+
+    // Filter to Level 4 master items
+    const ikuItems = items.filter(it => it.level === 4);
+    const totalIkuCount = ikuItems.length;
+
+    if (totalIkuCount === 0) {
+      alert('Belum ada data indikator (Level 4) pada Renstra.');
+      return;
+    }
+
+    // Helper: is an item complete in a specific Triwulan?
+    // Complete = Capaian, Progress, Kendala, Strategi, and Data Dukung are all non-empty
+    function isComplete(itemId, tw) {
+      const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
+      if (!p) return false;
+      return !!(p.capaian?.trim() && 
+                p.progress?.trim() && 
+                p.issues?.trim() && 
+                p.strategy?.trim() && 
+                p.supporting_data_link?.trim());
+    }
+
+    // Helper: count of data dukung filled for a specific Triwulan
+    function countDataDukung(itemId, tw) {
+      const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
+      return (p && p.supporting_data_link?.trim()) ? 1 : 0;
+    }
+
+    // Compute stats for each of the 4 Triwulans
+    const twStats = { 1: {}, 2: {}, 3: {}, 4: {} };
+    let totalCompletedAllTws = 0;
+
+    for (let tw = 1; tw <= 4; tw++) {
+      let completedCount = 0;
+      let dataDukungCount = 0;
+
+      ikuItems.forEach(iku => {
+        if (isComplete(iku.id, tw)) completedCount++;
+        dataDukungCount += countDataDukung(iku.id, tw);
+      });
+
+      const pct = Math.round((completedCount / totalIkuCount) * 100);
+      twStats[tw] = {
+        completed: completedCount,
+        dataDukung: dataDukungCount,
+        pct: pct
+      };
+
+      totalCompletedAllTws += completedCount;
+    }
+
+    // Overall annual progress (Total completed across all 4 triwulans)
+    const overallPct = Math.round((totalCompletedAllTws / (totalIkuCount * 4)) * 100);
+
+    // Update UI elements
+    $('lap-empty-state').style.display = 'none';
+    $('lap-content').style.display = 'block';
+
+    // Hide breakdown section until a card is clicked
+    $('lap-breakdown-section').style.display = 'none';
+
+    // Update Summary Stats
+    $('lap-total-iku').textContent = totalIkuCount;
+    // Total reported/complete in active/any triwulans? Let's show sum of completed vs total possible
+    $('lap-filled-iku').textContent = totalCompletedAllTws;
+    $('lap-empty-iku').textContent = (totalIkuCount * 4) - totalCompletedAllTws;
+
+    // Update Banner Progress Bar
+    $('lap-overall-pct-banner').textContent = overallPct + '%';
+    $('lap-overall-bar').style.width = overallPct + '%';
+
+    // Render Line Chart
+    renderLaporanLineChart(twStats);
+
+    // Render Triwulan Cards (circular SVG animation)
+    for (let tw = 1; tw <= 4; tw++) {
+      const stats = twStats[tw];
+      
+      // Update circular progress SVG
+      const fillCircle = $(`circle-tw${tw}-fill`);
+      const textEl = $(`circle-tw${tw}-text`);
+      if (fillCircle && textEl) {
+        const circumference = 213.6;
+        const offset = circumference - (stats.pct / 100) * circumference;
+        fillCircle.setAttribute('stroke-dashoffset', offset);
+        textEl.textContent = stats.pct + '%';
+      }
+
+      // Update counters
+      const countsEl = $(`lap-tw${tw}-counts`);
+      if (countsEl) {
+        countsEl.textContent = `${stats.dataDukung} / ${totalIkuCount} Indikator`;
+      }
+    }
+
+  } catch (e) {
+    console.error('Laporan error:', e);
+    alert('Gagal memuat laporan: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-chart-simple"></i> Tampilkan Laporan';
+  }
+}
+
+function renderLaporanLineChart(twStats) {
+  const canvas = $('chart-laporan');
+  if (!canvas) return;
+
+  if (_laporanChart) {
+    _laporanChart.destroy();
+    _laporanChart = null;
+  }
+
+  const labels = ['TW 1', 'TW 2', 'TW 3', 'TW 4'];
+  const data = [twStats[1].pct, twStats[2].pct, twStats[3].pct, twStats[4].pct];
+
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+  gradient.addColorStop(0, 'rgba(2, 132, 199, 0.25)');
+  gradient.addColorStop(1, 'rgba(2, 132, 199, 0.00)');
+
+  _laporanChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Kelengkapan (%)',
+        data,
+        borderColor: '#0284c7',
+        borderWidth: 3,
+        pointBackgroundColor: '#0284c7',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        tension: 0.35, // Smooth line curves
+        fill: true,
+        backgroundColor: gradient
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { callback: v => v + '%', font: { size: 11, weight: '500' } },
+          grid: { color: 'rgba(0,0,0,0.05)' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11, weight: '600' } }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          padding: 10,
+          backgroundColor: '#0f172a',
+          titleFont: { size: 12, weight: '700' },
+          bodyFont: { size: 12 },
+          callbacks: {
+            label: ctx => `Kelengkapan: ${ctx.parsed.y}%`
+          }
+        }
+      }
+    }
+  });
+}
+
+function showLaporanBreakdown(tw) {
+  const breakdownSec = $('lap-breakdown-section');
+  const tbody = $('tbody-laporan-breakdown');
+  const titleEl = $('lap-breakdown-title');
+  if (!breakdownSec || !tbody || !titleEl) return;
+
+  const items = _lapCachedItems;
+  const progressData = _lapCachedProgress.filter(x => x.triwulan === tw);
+
+  titleEl.textContent = `Rincian Ketidaklengkapan Triwulan ${tw}`;
+  tbody.innerHTML = '';
+
+  // Build tree
+  const { roots, map } = buildTree(items);
+
+  // Filter only Level 2 nodes (which are the 9 Bidangs)
+  const bidangNodes = Object.values(map).filter(node => node.level === 2);
+  // Sort them numerically based on the description prefix (e.g. "1. Bidang 01" -> 1)
+  bidangNodes.sort((a, b) => {
+    const aNum = parseInt(a.description) || a.id;
+    const bNum = parseInt(b.description) || b.id;
+    return aNum - bNum;
+  });
+
+  // Build progress lookup
+  const progressMap = {};
+  progressData.forEach(p => { progressMap[p.item_id] = p; });
+
+  // IKU complete = ALL 5 fields non-empty
+  function isIKUComplete(itemId) {
+    const p = progressMap[itemId];
+    if (!p) return false;
+    return !!(p.capaian?.trim() && p.progress?.trim() &&
+              p.issues?.trim() && p.strategy?.trim() &&
+              p.supporting_data_link?.trim());
+  }
+
+  // Recursively compute stats for a node
+  function getNodeStats(node) {
+    if (node.level === 4) {
+      const complete = isIKUComplete(node.id);
+      return { total: 1, filled: complete ? 1 : 0, ikuItems: [{ node, complete, prog: progressMap[node.id] }] };
+    }
+    let total = 0, filled = 0, ikuItems = [];
+    (node.children || []).forEach(child => {
+      const cs = getNodeStats(child);
+      total += cs.total;
+      filled += cs.filled;
+      ikuItems = ikuItems.concat(cs.ikuItems);
+    });
+    return { total, filled, ikuItems };
+  }
+
+  // Process each Level-2 Bidang
+  const bidangStats = bidangNodes.map((bidang, i) => {
+    const stats = getNodeStats(bidang);
+    const pct = stats.total > 0 ? Math.round((stats.filled / stats.total) * 100) : 0;
+    return {
+      id: bidang.id,
+      name: bidang.description,
+      code: bidang.code || `B${i + 1}`,
+      total: stats.total,
+      filled: stats.filled,
+      pct,
+      ikuItems: stats.ikuItems,
+      children: bidang.children || []
+    };
+  });
+
+  const pctColor = pct => pct === 100 ? '#22c55e' : pct >= 75 ? '#3b82f6' : pct >= 50 ? '#f97316' : pct > 0 ? '#ef4444' : '#94a3b8';
+
+  bidangStats.forEach(bidang => {
+    const clr = pctColor(bidang.pct);
+    const icon = bidang.pct === 100
+      ? '<i class="fa-solid fa-circle-check" style="color:#22c55e"></i>'
+      : '<i class="fa-solid fa-circle-half-stroke" style="color:#f97316"></i>';
+
+    // Bidang header row
+    const trB = document.createElement('tr');
+    trB.className = 'lap-row-bidang';
+    trB.innerHTML = `
+      <td class="text-center">${icon}</td>
+      <td class="text-left"><strong>${escapeHTML(bidang.code)} — ${escapeHTML(bidang.name)}</strong></td>
+      <td>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:${bidang.pct}%;background:${clr}"></div>
+        </div>
+      </td>
+      <td class="text-center" style="color:${clr};font-weight:700;">${bidang.pct}%</td>
+      <td class="text-center" style="color:var(--muted);font-size:0.85rem;">${bidang.filled}/${bidang.total}</td>
+    `;
+    tbody.appendChild(trB);
+
+    // Incomplete IKU rows
+    const incomplete = bidang.ikuItems.filter(it => !it.complete);
+    incomplete.forEach(({ node, prog }) => {
+      const missing = [];
+      if (!prog?.capaian?.trim())               missing.push('Capaian');
+      if (!prog?.progress?.trim())              missing.push('Progress');
+      if (!prog?.issues?.trim())                missing.push('Kendala');
+      if (!prog?.strategy?.trim())              missing.push('Strategi');
+      if (!prog?.supporting_data_link?.trim())  missing.push('Data Dukung');
+
+      const trI = document.createElement('tr');
+      trI.className = 'lap-row-iku';
+      trI.innerHTML = `
+        <td class="text-center"><i class="fa-solid fa-triangle-exclamation" style="color:#f97316;font-size:0.8rem;"></i></td>
+        <td class="text-left" style="padding-left:24px !important;">
+          ${node.code ? `<span style="color:var(--muted);margin-right:6px;">${escapeHTML(node.code)}</span>` : ''}
+          ${escapeHTML(node.description)}
+        </td>
+        <td colspan="3" class="text-left">
+          <span style="color:var(--muted);">Belum diisi: </span>
+          <strong style="color:#ef4444;">${missing.join(', ')}</strong>
+        </td>
+      `;
+      tbody.appendChild(trI);
+    });
+
+    // All-complete banner if nothing missing
+    if (incomplete.length === 0 && bidang.total > 0) {
+      const trDone = document.createElement('tr');
+      trDone.className = 'lap-row-iku';
+      trDone.innerHTML = `
+        <td></td>
+        <td colspan="4" class="text-left" style="padding-left:24px !important;color:#22c55e;font-size:0.82rem;">
+          <i class="fa-solid fa-check"></i> Semua IKU sudah diisi lengkap!
+        </td>
+      `;
+      tbody.appendChild(trDone);
+    }
+  });
+
+  // Reveal breakdown section and scroll smoothly to it
+  breakdownSec.style.display = 'block';
+  breakdownSec.scrollIntoView({ behavior: 'smooth' });
+}
+
 async function loadLaporan() {
+  // Laporan sedang dalam pengembangan - skip loading
+  return;
   try {
     const items = await api('GET', '/api/items?type=keuangan_rka');
     const purchases = await api('GET', '/api/purchases');
