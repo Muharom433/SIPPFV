@@ -8,6 +8,7 @@ export interface User {
   role: 'admin' | 'user';
   prodi_code: string | null;
   prodi_name?: string | null;
+  password?: string;
 }
 
 export interface AuthSession {
