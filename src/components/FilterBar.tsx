@@ -125,17 +125,68 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
         gap: '24px',
         flexWrap: 'wrap'
       }}>
-        {/* Glow effect elements behind glass */}
+        {/* Overlapping circle vector pattern (matching reference) */}
         <div style={{
           position: 'absolute',
-          top: '-50%',
-          right: '-20%',
-          width: '400px',
-          height: '400px',
-          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0) 70%)',
+          top: '-15%',
+          right: '5%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%)',
           pointerEvents: 'none',
           zIndex: 1
         }} />
+        <div style={{
+          position: 'absolute',
+          top: '-30%',
+          right: '-10%',
+          width: '450px',
+          height: '450px',
+          borderRadius: '50%',
+          border: '1.5px solid rgba(255, 255, 255, 0.06)',
+          background: 'transparent',
+          pointerEvents: 'none',
+          zIndex: 1
+        }} />
+        <div style={{
+          position: 'absolute',
+          bottom: '-35%',
+          right: '12%',
+          width: '420px',
+          height: '420px',
+          borderRadius: '50%',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          background: 'rgba(255, 255, 255, 0.01)',
+          pointerEvents: 'none',
+          zIndex: 1
+        }} />
+        <div style={{
+          position: 'absolute',
+          top: '20%',
+          right: '30%',
+          width: '280px',
+          height: '280px',
+          borderRadius: '50%',
+          border: '1px solid rgba(255, 255, 255, 0.04)',
+          background: 'transparent',
+          pointerEvents: 'none',
+          zIndex: 1
+        }} />
+
+        {/* 4-point Sparkle SVG in bottom-right corner */}
+        <svg viewBox="0 0 24 24" fill="currentColor" style={{
+          position: 'absolute',
+          right: '30px',
+          bottom: '22px',
+          width: '22px',
+          height: '22px',
+          color: 'rgba(255, 255, 255, 0.4)',
+          pointerEvents: 'none',
+          zIndex: 1
+        }}>
+          <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z" />
+        </svg>
 
         <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
           <span style={{ 
@@ -159,19 +210,14 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           </p>
         </div>
 
-        {/* 2. ACTION BUTTONS INSIDE BANNER (Glassy Panel Card to group and fill space) */}
+        {/* 2. ACTION BUTTONS INSIDE BANNER (Premium Glassmorphic Buttons) */}
         <div style={{ 
           zIndex: 2, 
           display: 'flex', 
           gap: '12px', 
+          flexWrap: 'wrap', 
           alignItems: 'center',
-          marginLeft: 'auto',
-          background: 'rgba(255, 255, 255, 0.08)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          borderRadius: '20px',
-          padding: '16px 20px',
-          boxShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.15), 0 8px 32px 0 rgba(0, 0, 0, 0.05)',
-          backdropFilter: 'blur(8px)'
+          marginLeft: 'auto' 
         }}>
           {isRenstra && isAdmin && (
             <button 
