@@ -310,15 +310,15 @@ export function Dashboard() {
 
       {/* 2. ALWAYS VISIBLE BANNER (Vibrant Ocean Blue Gradient, Rounded Corners, Soft Shadow) */}
       <div className="lap-banner" style={{
-        background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.95) 0%, rgba(14, 165, 233, 0.9) 50%, rgba(30, 64, 175, 0.95) 100%)',
+        background: 'linear-gradient(135deg, #0072ff 0%, #00bfff 100%)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
         borderRadius: '24px',
         padding: '32px 40px',
         color: 'var(--white)',
         position: 'relative',
         marginBottom: '24px',
-        boxShadow: '0 20px 40px -15px rgba(2, 132, 199, 0.3)',
+        boxShadow: '0 20px 40px -15px rgba(0, 114, 255, 0.4)',
         overflow: 'hidden',
         display: 'flex',
         justifyContent: 'space-between',
@@ -479,20 +479,20 @@ export function Dashboard() {
                       }}
                       style={{
                         width: '100%',
-                        padding: '10px 14px',
+                        minHeight: '44px',
+                        padding: '12px 16px',
                         textAlign: 'left',
                         background: selectedProdi === '' ? '#e0f2fe' : 'transparent',
                         color: selectedProdi === '' ? '#0369a1' : 'var(--text)',
                         borderRadius: '8px',
                         cursor: 'pointer',
                         fontWeight: selectedProdi === '' ? 600 : 500,
-                        fontSize: '0.85rem',
+                        fontSize: '0.88rem',
+                        lineHeight: '1.5',
                         transition: 'all 0.15s',
-                        display: 'block',
+                        display: 'flex',
+                        alignItems: 'center',
                         boxSizing: 'border-box',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
                         userSelect: 'none'
                       }}
                       onMouseEnter={(e) => {
@@ -518,20 +518,20 @@ export function Dashboard() {
                         }}
                         style={{
                           width: '100%',
-                          padding: '10px 14px',
+                          minHeight: '44px',
+                          padding: '12px 16px',
                           textAlign: 'left',
                           background: selectedProdi === p.prodi_code ? '#e0f2fe' : 'transparent',
                           color: selectedProdi === p.prodi_code ? '#0369a1' : 'var(--text)',
                           borderRadius: '8px',
                           cursor: 'pointer',
                           fontWeight: selectedProdi === p.prodi_code ? 600 : 500,
-                          fontSize: '0.85rem',
+                          fontSize: '0.88rem',
+                          lineHeight: '1.5',
                           transition: 'all 0.15s',
-                          display: 'block',
+                          display: 'flex',
+                          alignItems: 'center',
                           boxSizing: 'border-box',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
                           userSelect: 'none'
                         }}
                         title={`${p.prodi_code} — ${p.prodi_name}`}

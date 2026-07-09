@@ -79,28 +79,30 @@ export function Sidebar() {
       <style>{`
         .sidebar {
           background: #ffffff !important;
-          border-right: 1px solid var(--border) !important;
+          border-right: 1px solid #f1f5f9 !important;
+          box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02) !important;
         }
         .sidebar-logo {
-          border-bottom: 1px solid var(--border) !important;
+          border-bottom: 1px solid #f1f5f9 !important;
           background: #ffffff !important;
+          padding: 24px 20px !important;
         }
         .logo-sip {
           font-family: 'Outfit', sans-serif;
-          color: #1e3a8a !important;
+          color: #0072ff !important;
           font-weight: 800;
-          font-style: italic;
-          font-size: 2.4rem !important;
+          font-style: normal;
+          font-size: 2rem !important;
+          letter-spacing: -0.5px;
         }
         /* Collapsed specific overrides to prevent clipping and hide yellow dot */
         .sidebar.collapsed:not(:hover) .sidebar-logo {
-          padding: 22px 0 !important;
+          padding: 24px 0 !important;
           justify-content: center !important;
         }
         .sidebar.collapsed:not(:hover) .logo-sip {
           font-size: 1.25rem !important;
           letter-spacing: -0.5px !important;
-          font-style: normal !important;
           display: block !important;
           text-align: center !important;
           width: 100% !important;
@@ -110,21 +112,23 @@ export function Sidebar() {
         }
 
         .sidenav .nav-item a, .sidenav .nav-group-header {
-          border-radius: 12px !important;
-          margin: 4px 12px !important;
-          padding: 12px 16px !important;
+          border-radius: 99px !important;
+          margin: 6px 16px !important;
+          padding: 12px 20px !important;
           border-left: none !important;
-          color: #4b5563 !important;
-          transition: all 0.2s ease !important;
+          color: #64748b !important;
+          transition: all 0.3s ease !important;
+          font-weight: 500 !important;
+          font-size: 0.95rem !important;
         }
         .sidenav .nav-item a:hover, .sidenav .nav-group-header:hover {
-          background: #f3f4f6 !important;
-          color: #1e293b !important;
+          background: #f8fafc !important;
+          color: #0f172a !important;
         }
         .sidenav .nav-item.active > a, .sidenav .nav-group.open > .nav-group-header {
-          background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+          background: linear-gradient(135deg, #0072ff 0%, #00c6ff 100%) !important;
           color: #ffffff !important;
-          box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25) !important;
+          box-shadow: 0 8px 20px -6px rgba(0, 114, 255, 0.4) !important;
           font-weight: 600 !important;
           position: relative !important;
         }
@@ -135,21 +139,24 @@ export function Sidebar() {
         .sidenav .nav-item.active > a::after {
           content: '';
           position: absolute;
-          right: 16px;
+          right: 20px;
           top: 50%;
           transform: translateY(-50%);
           width: 8px;
           height: 8px;
-          background-color: #facc15 !important;
+          background-color: #fbbf24 !important;
           border-radius: 50%;
+          box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
         }
         .nav-sub {
           background: transparent !important;
           padding-left: 12px !important;
+          margin-top: 4px !important;
+          margin-bottom: 8px !important;
         }
         .nav-sub li {
-          border-radius: 8px !important;
-          margin: 4px 12px !important;
+          border-radius: 12px !important;
+          margin: 4px 16px !important;
           padding: 10px 16px !important;
           font-weight: 500;
           cursor: pointer;
@@ -159,27 +166,32 @@ export function Sidebar() {
         .nav-sub li a {
           padding: 0 !important;
           background: transparent !important;
-          color: #4b5563 !important;
+          color: #64748b !important;
           border-left: none !important;
           display: block;
           width: 100%;
+          font-size: 0.9rem !important;
         }
         .nav-sub li.active {
-          background: rgba(30, 58, 138, 0.08) !important;
+          background: #f0f9ff !important;
         }
         .nav-sub li.active a {
-          color: #1e3a8a !important;
+          color: #0284c7 !important;
           font-weight: 600 !important;
         }
         .nav-sub li:hover:not(.active) {
-          background: #f3f4f6 !important;
+          background: #f8fafc !important;
+        }
+        .nav-sub li:hover:not(.active) a {
+          color: #0f172a !important;
         }
         .sidebar-card {
-          margin: 16px 12px !important;
-          border-radius: 16px !important;
+          margin: 20px 16px !important;
+          border-radius: 20px !important;
           border: 1px solid #e2e8f0 !important;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;
-          background: #f8fafc !important;
+          box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05) !important;
+          background: #ffffff !important;
+          padding: 16px !important;
         }
       `}</style>
       <div className="sidebar-logo">
