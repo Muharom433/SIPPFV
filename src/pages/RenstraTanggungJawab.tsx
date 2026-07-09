@@ -117,10 +117,37 @@ export function RenstraTanggungJawab({
   if (!activeProdi && isAdmin) {
     return (
       <div className="view" id="view-renstra-tanggung">
-        <div className="section-head">
-          <div>
-            <h2>Renstra - Tanggung Jawab</h2>
-            <p className="sub-text">Periode: Tahun {filterYear}</p>
+        <div className="lap-banner" style={{
+          background: 'linear-gradient(135deg, #0a192f 0%, #0d1e36 50%, #112240 100%)',
+          borderRadius: '24px',
+          padding: '32px 40px',
+          color: 'var(--white)',
+          position: 'relative',
+          marginBottom: '24px',
+          boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.25)',
+          overflow: 'hidden',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '24px',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
+            <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.12)', fontWeight: 600, color: '#64ffda' }}>
+              Renstra &bull; Rencana Strategis
+            </span>
+            <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
+              Renstra - Tanggung Jawab
+            </h2>
+            <p style={{ fontSize: '0.95rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.65, color: '#a8b2d1', margin: 0 }}>
+              Kelola pembagian tanggung jawab, target fakultas, target unit, dan alokasi anggaran Renstra.
+            </p>
+          </div>
+          <div style={{ zIndex: 2, background: 'rgba(255,255,255,0.04)', padding: '24px 32px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', minWidth: '220px', textAlign: 'center', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)' }}>
+            <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8, marginBottom: '10px', color: '#a8b2d1', fontWeight: 600 }}>Tahun Anggaran</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e3a8a', background: 'var(--white)', padding: '10px 20px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}>
+              <i className="fa-solid fa-calendar-days" style={{ color: '#1e40af' }}></i> TAHUN {filterYear}
+            </div>
           </div>
         </div>
         <div className="tbl-wrap">
@@ -274,10 +301,37 @@ export function RenstraTanggungJawab({
 
   return (
     <div className="view" id="view-renstra-tanggung">
-      <div className="section-head">
-        <div>
-          <h2>Renstra - Tanggung Jawab</h2>
-          <p className="sub-text">Periode: Tahun {filterYear} — Prodi: {activeProdi}</p>
+      <div className="lap-banner" style={{
+        background: 'linear-gradient(135deg, #0a192f 0%, #0d1e36 50%, #112240 100%)',
+        borderRadius: '24px',
+        padding: '32px 40px',
+        color: 'var(--white)',
+        position: 'relative',
+        marginBottom: '24px',
+        boxShadow: '0 20px 40px -15px rgba(10, 25, 47, 0.25)',
+        overflow: 'hidden',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '24px',
+        flexWrap: 'wrap'
+      }}>
+        <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
+          <span style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', background: 'rgba(255,255,255,0.08)', padding: '6px 14px', borderRadius: '99px', border: '1px solid rgba(255,255,255,0.12)', fontWeight: 600, color: '#64ffda' }}>
+            Renstra &bull; Prodi {activeProdi}
+          </span>
+          <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
+            Renstra - Tanggung Jawab
+          </h2>
+          <p style={{ fontSize: '0.95rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.65, color: '#a8b2d1', margin: 0 }}>
+            Kelola pembagian tanggung jawab, target fakultas, target unit, dan alokasi anggaran Renstra.
+          </p>
+        </div>
+        <div style={{ zIndex: 2, background: 'rgba(255,255,255,0.04)', padding: '24px 32px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', minWidth: '220px', textAlign: 'center', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)' }}>
+          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8, marginBottom: '10px', color: '#a8b2d1', fontWeight: 600 }}>Tahun Anggaran</div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e3a8a', background: 'var(--white)', padding: '10px 20px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}>
+            <i className="fa-solid fa-calendar-days" style={{ color: '#1e40af' }}></i> TAHUN {filterYear}
+          </div>
         </div>
       </div>
       <div className="tbl-wrap tbl-scroll">

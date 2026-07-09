@@ -197,6 +197,22 @@ export function Sidebar() {
             </a>
           </li>
 
+          <li className={`nav-group ${openGroups.renstra ? 'open' : ''}`}>
+            <div className="nav-group-header" onClick={() => toggleGroup('renstra')}>
+              <i className="fa-solid fa-bullseye"></i>
+              <span>Renstra</span>
+              <i className="fa-solid fa-chevron-down caret"></i>
+            </div>
+            <ul className="nav-sub">
+              <li className={tab === 'renstra-tanggung' ? 'active' : ''} onClick={() => handleTabClick('renstra-tanggung')}>
+                <a href="#" onClick={(e) => e.preventDefault()}>Tanggung Jawab</a>
+              </li>
+              <li className={tab === 'renstra-capaian' ? 'active' : ''} onClick={() => handleTabClick('renstra-capaian')}>
+                <a href="#" onClick={(e) => e.preventDefault()}>Capaian</a>
+              </li>
+            </ul>
+          </li>
+
           {isAdmin && (
             <li className={`nav-group ${openGroups.rka ? 'open' : ''}`}>
               <div className="nav-group-header" onClick={() => toggleGroup('rka')}>
@@ -214,22 +230,6 @@ export function Sidebar() {
               </ul>
             </li>
           )}
-
-          <li className={`nav-group ${openGroups.renstra ? 'open' : ''}`}>
-            <div className="nav-group-header" onClick={() => toggleGroup('renstra')}>
-              <i className="fa-solid fa-bullseye"></i>
-              <span>Renstra</span>
-              <i className="fa-solid fa-chevron-down caret"></i>
-            </div>
-            <ul className="nav-sub">
-              <li className={tab === 'renstra-tanggung' ? 'active' : ''} onClick={() => handleTabClick('renstra-tanggung')}>
-                <a href="#" onClick={(e) => e.preventDefault()}>Tanggung Jawab</a>
-              </li>
-              <li className={tab === 'renstra-capaian' ? 'active' : ''} onClick={() => handleTabClick('renstra-capaian')}>
-                <a href="#" onClick={(e) => e.preventDefault()}>Capaian</a>
-              </li>
-            </ul>
-          </li>
 
           {isAdmin && (
             <li className={`nav-item ${tab === 'pembelajaran' ? 'active' : ''}`}>
