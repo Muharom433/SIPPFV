@@ -62,13 +62,24 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
 
   // --- Custom Searchable Dropdown state & ref ---
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isTwDropdownOpen, setIsTwDropdownOpen] = useState(false);
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
   const [prodiSearch, setProdiSearch] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const twDropdownRef = useRef<HTMLDivElement>(null);
+  const yearDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsDropdownOpen(false);
+      }
+      if (twDropdownRef.current && !twDropdownRef.current.contains(target)) {
+        setIsTwDropdownOpen(false);
+      }
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(target)) {
+        setIsYearDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -143,12 +154,12 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
             {bannerTitle}
           </h2>
-          <p style={{ fontSize: '0.95rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.65, color: '#a8b2d1', margin: 0 }}>
+          <p style={{ fontSize: '0.98rem', opacity: 0.95, maxWidth: '600px', lineHeight: 1.65, color: '#ffffff', margin: 0, fontWeight: 500 }}>
             {bannerSub}
           </p>
         </div>
 
-        {/* 2. ACTION BUTTONS INSIDE BANNER (Glassy, Modern Alignment on the right) */}
+        {/* 2. ACTION BUTTONS INSIDE BANNER (High Contrast Premium Solid Buttons) */}
         <div style={{ 
           zIndex: 2, 
           display: 'flex', 
@@ -163,26 +174,26 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
               id="btn-import-renstra"
               onClick={onImportClick}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: '#fff',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
+                background: '#ffffff',
+                color: '#0072ff',
+                border: 'none',
                 borderRadius: '12px',
                 padding: '10px 20px',
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: '0.85rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 transition: 'all 0.2s',
                 cursor: 'pointer',
-                boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+                boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                e.currentTarget.style.background = '#f1f5f9';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                e.currentTarget.style.background = '#ffffff';
                 e.currentTarget.style.transform = 'none';
               }}
             >
@@ -195,26 +206,26 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
               id="btn-export-renstra"
               onClick={onExportClick}
               style={{
-                background: 'rgba(34, 197, 94, 0.15)',
-                color: '#4ade80',
-                border: '1px solid rgba(34, 197, 94, 0.3)',
+                background: '#10b981',
+                color: '#ffffff',
+                border: 'none',
                 borderRadius: '12px',
                 padding: '10px 20px',
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: '0.85rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 15px rgba(34, 197, 94, 0.1)',
+                boxShadow: '0 4px 15px rgba(16, 185, 129, 0.25)',
                 transition: 'all 0.2s',
                 cursor: 'pointer'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(34, 197, 94, 0.25)';
+                e.currentTarget.style.background = '#059669';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(34, 197, 94, 0.15)';
+                e.currentTarget.style.background = '#10b981';
                 e.currentTarget.style.transform = 'none';
               }}
             >
@@ -227,26 +238,26 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
               id="btn-add-main"
               onClick={onAddClick}
               style={{
-                background: 'rgba(59, 130, 246, 0.2)',
-                color: '#60a5fa',
-                border: '1px solid rgba(59, 130, 246, 0.35)',
+                background: '#f97316',
+                color: '#ffffff',
+                border: 'none',
                 borderRadius: '12px',
                 padding: '10px 20px',
-                fontWeight: 600,
+                fontWeight: 700,
                 fontSize: '0.85rem',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 15px rgba(59, 130, 246, 0.1)',
+                boxShadow: '0 4px 15px rgba(249, 115, 22, 0.35)',
                 transition: 'all 0.2s',
                 cursor: 'pointer'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.3)';
+                e.currentTarget.style.background = '#ea580c';
                 e.currentTarget.style.transform = 'translateY(-1px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+                e.currentTarget.style.background = '#f97316';
                 e.currentTarget.style.transform = 'none';
               }}
             >
@@ -273,61 +284,177 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
         {/* Left Side: Select Filters */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap', flex: 1 }}>
           {showBulan && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }} ref={twDropdownRef}>
               <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Triwulan:</span>
-              <select 
-                id="flt-bulan" 
-                className="flt-select"
-                value={filterTriwulan}
-                onChange={(e) => {
-                  setFilterTriwulan(e.target.value);
-                  onRefresh?.();
-                }}
-                style={{ 
-                  height: '40px', 
-                  borderRadius: '10px', 
-                  border: '1px solid var(--border)', 
-                  padding: '0 12px', 
-                  fontWeight: 500, 
-                  color: 'var(--text)', 
-                  background: '#f8fafc', 
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option>Triwulan 1</option>
-                <option>Triwulan 2</option>
-                <option>Triwulan 3</option>
-                <option>Triwulan 4</option>
-              </select>
+              <div style={{ position: 'relative', width: '140px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsTwDropdownOpen(!isTwDropdownOpen)}
+                  style={{
+                    width: '100%',
+                    height: '40px',
+                    borderRadius: '10px',
+                    border: '1px solid var(--border)',
+                    padding: '0 12px',
+                    fontWeight: 500,
+                    color: 'var(--text)',
+                    background: '#f8fafc',
+                    outline: 'none',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    fontSize: '0.88rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px'
+                  }}
+                >
+                  <span>{filterTriwulan}</span>
+                  <i className="fa-solid fa-chevron-down" style={{ fontSize: '0.8rem', color: 'var(--muted)', transition: 'transform 0.2s', transform: isTwDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
+                </button>
+
+                {isTwDropdownOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '46px',
+                    left: 0,
+                    width: '100%',
+                    background: '#fff',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)',
+                    border: '1px solid var(--border)',
+                    padding: '6px',
+                    zIndex: 999,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px'
+                  }}>
+                    {['Triwulan 1', 'Triwulan 2', 'Triwulan 3', 'Triwulan 4'].map((tw) => (
+                      <div
+                        key={tw}
+                        onClick={() => {
+                          setFilterTriwulan(tw);
+                          setIsTwDropdownOpen(false);
+                          onRefresh?.();
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontWeight: filterTriwulan === tw ? 600 : 500,
+                          fontSize: '0.85rem',
+                          background: filterTriwulan === tw ? '#e0f2fe' : 'transparent',
+                          color: filterTriwulan === tw ? '#0369a1' : 'var(--text)',
+                          transition: 'all 0.15s',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (filterTriwulan !== tw) {
+                            e.currentTarget.style.background = '#f1f5f9';
+                            e.currentTarget.style.color = '#0284c7';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (filterTriwulan !== tw) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text)';
+                          }
+                        }}
+                      >
+                        {tw}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative' }} ref={yearDropdownRef}>
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Tahun:</span>
-            <select 
-              id="flt-tahun" 
-              className="flt-select"
-              value={filterYear}
-              onChange={(e) => {
-                setFilterYear(parseInt(e.target.value) || 2026);
-                onRefresh?.();
-              }}
-              style={{ 
-                height: '40px', 
-                borderRadius: '10px', 
-                border: '1px solid var(--border)', 
-                padding: '0 12px', 
-                fontWeight: 500, 
-                color: 'var(--text)', 
-                background: '#f8fafc', 
-                outline: 'none',
-                cursor: 'pointer'
-              }}
-            >
-              <option>2026</option>
-              <option>2027</option>
-            </select>
+            <div style={{ position: 'relative', width: '100px' }}>
+              <button
+                type="button"
+                onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
+                style={{
+                  width: '100%',
+                  height: '40px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border)',
+                  padding: '0 12px',
+                  fontWeight: 500,
+                  color: 'var(--text)',
+                  background: '#f8fafc',
+                  outline: 'none',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: '0.88rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '8px'
+                }}
+              >
+                <span>{filterYear}</span>
+                <i className="fa-solid fa-chevron-down" style={{ fontSize: '0.8rem', color: 'var(--muted)', transition: 'transform 0.2s', transform: isYearDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
+              </button>
+
+              {isYearDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '46px',
+                  left: 0,
+                  width: '100%',
+                  background: '#fff',
+                  borderRadius: '12px',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)',
+                  border: '1px solid var(--border)',
+                  padding: '6px',
+                  zIndex: 999,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px'
+                }}>
+                  {[2026, 2027].map((yr) => (
+                    <div
+                      key={yr}
+                      onClick={() => {
+                        setFilterYear(yr);
+                        setIsYearDropdownOpen(false);
+                        onRefresh?.();
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: filterYear === yr ? 600 : 500,
+                        fontSize: '0.85rem',
+                        background: filterYear === yr ? '#e0f2fe' : 'transparent',
+                        color: filterYear === yr ? '#0369a1' : 'var(--text)',
+                        transition: 'all 0.15s',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (filterYear !== yr) {
+                          e.currentTarget.style.background = '#f1f5f9';
+                          e.currentTarget.style.color = '#0284c7';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (filterYear !== yr) {
+                          e.currentTarget.style.background = 'transparent';
+                          e.currentTarget.style.color = 'var(--text)';
+                        }
+                      }}
+                    >
+                      {yr}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Program Studi: Custom Searchable Dropdown */}

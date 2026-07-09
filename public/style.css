@@ -524,7 +524,7 @@ body.role-user .admin-only { display: none !important; }
 }
 
 .htable thead th {
-  background: var(--primary);
+  background: #1e3a8a;
   color: var(--white);
   padding: 14px 16px;
   text-align: left;
@@ -551,10 +551,10 @@ body.role-user .admin-only { display: none !important; }
 
 .htable tbody td:last-child { border-right: none; }
 
-/* ─ Level Row Colors (matching UNY SIPP but modern & readable) ─ */
-.htable .r1  { background: var(--l1); color: #fff; font-weight: 700; }
-.htable .r2  { background: var(--l2); color: #fff; font-weight: 600; }
-.htable .r3  { background: #fdf2f8; color: #5f0f40; font-weight: 600; }
+/* ─ Level Row Colors (matching clean blue/cyan modern theme) ─ */
+.htable .r1  { background: #1e3a8a; color: #ffffff; font-weight: 700; }
+.htable .r2  { background: #0284c7; color: #ffffff; font-weight: 600; }
+.htable .r3  { background: #f0f9ff; color: #0369a1; font-weight: 600; }
 .htable .r4  { background: #ffffff; color: #334155; }
 .htable .r5  { background: #fafaf9; color: #44403c; }
 .htable .r6  { background: #fff7ed; color: #7c2d12; }
@@ -564,15 +564,15 @@ body.role-user .admin-only { display: none !important; }
 
 /* Setup borders for dark rows */
 .htable .r1 td, .htable .r2 td {
-  border-right-color: rgba(255,255,255,.12);
-  border-bottom-color: rgba(255,255,255,.1);
+  border-right-color: rgba(255,255,255,.15);
+  border-bottom-color: rgba(255,255,255,.15);
 }
 
 /* Hover effects */
 .htable tbody tr { transition: background-color 0.15s ease; }
-.htable .r1:hover { background: #232854; }
-.htable .r2:hover { background: #5a204b; }
-.htable .r3:hover { background: #fce7f3; }
+.htable .r1:hover { background: #1e40af; }
+.htable .r2:hover { background: #0369a1; }
+.htable .r3:hover { background: #e0f2fe; }
 .htable .r4:hover { background: #f8fafc; }
 .htable .r5:hover { background: #f5f5f4; }
 .htable .r6:hover { background: #ffedd5; }
