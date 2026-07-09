@@ -349,12 +349,13 @@ export function Dashboard() {
             zIndex: 1
           }}
         >
-          {/* Overlapping Vector Circles with High Visibility */}
-          <circle cx="850" cy="100" r="180" fill="none" stroke="rgba(255, 255, 255, 0.35)" strokeWidth="3" />
-          <circle cx="730" cy="180" r="220" fill="rgba(255, 255, 255, 0.05)" stroke="rgba(255, 255, 255, 0.28)" strokeWidth="2.5" />
-          <circle cx="920" cy="-20" r="160" fill="none" stroke="rgba(255, 255, 255, 0.22)" strokeWidth="2" />
-          <circle cx="620" cy="40" r="100" fill="none" stroke="rgba(255, 255, 255, 0.18)" strokeWidth="1.5" />
+          <path d="M750,-100 C850,50 950,50 1050,-100 Z" fill="rgba(255,255,255,0.03)" />
+          <path d="M800,-50 C880,80 980,80 1050,-50 Z" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="2" />
+          <circle cx="850" cy="100" r="300" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          <circle cx="950" cy="50" r="200" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" />
+          <circle cx="900" cy="150" r="150" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="2" />
         </svg>
+
 
         <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
           <span style={{ 
@@ -447,10 +448,11 @@ export function Dashboard() {
           border: '1px solid rgba(226, 232, 240, 0.8)',
           width: '100%'
         }}>
-          {/* Custom Searchable Dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, position: 'relative' }} ref={dropdownRef}>
+          {/* Custom Searchable Dropdown (lebar dibatasi, tidak 100%) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', width: '460px' }} ref={dropdownRef}>
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Program Studi:</span>
             <div style={{ flex: 1, position: 'relative' }}>
+
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
