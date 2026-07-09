@@ -1513,44 +1513,36 @@ body:not(.not-logged-in) .login-screen {
 }
 
 /* ── MOBILE RESPONSIVE ADAPTATIONS ─────────────────────── */
+
 @media (max-width: 768px) {
   .lap-banner {
-    padding: 20px 24px !important;
+    padding: 20px 20px !important;
     border-radius: 16px !important;
-    gap: 16px !important;
+    gap: 12px !important;
   }
-  .lap-banner-header h2 {
-    font-size: 1.4rem !important;
+  .lap-banner h2 {
+    font-size: 1.35rem !important;
   }
-  .lap-banner-header p {
+  .lap-banner p {
     font-size: 0.85rem !important;
   }
-  .lap-banner-actions {
+  .lap-banner > div:last-child {
     width: 100% !important;
-    justify-content: flex-start !important;
-  }
-  .lap-banner-actions .btn {
-    width: 100% !important;
-    justify-content: center !important;
+    margin-left: 0 !important;
   }
   .filter-bar-inner {
-    padding: 12px 20px !important;
+    padding: 12px 16px !important;
     border-radius: 16px !important;
-    gap: 16px !important;
-  }
-  .filter-bar-inner > div {
-    min-width: 100% !important;
-    width: 100% !important;
-  }
-  .filter-bar-inner button, .filter-bar-inner .btn {
-    width: 100% !important;
-    justify-content: center !important;
+    gap: 12px !important;
   }
   /* Table wrapping for mobile */
   .tbl-wrap {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
   }
+  /* Topbar tweaks: hide user text, keep avatar */
+  .user-name, .user-role-text { display: none !important; }
+  .topbar { padding: 0 14px !important; }
 }
 
 

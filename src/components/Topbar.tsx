@@ -18,7 +18,7 @@ const TAB_CONFIG: Record<string, { title: string }> = {
 
 export function Topbar() {
   const { user, logout } = useAuth();
-  const { tab, toggleSidebar } = useApp();
+  const { tab, toggleSidebar, isMobile } = useApp();
 
   const currentTabConfig = TAB_CONFIG[tab] || { title: tab };
 
@@ -68,7 +68,7 @@ export function Topbar() {
         >
           <i className="fa-solid fa-bars"></i>
         </button>
-        <div className="breadcrumb" id="breadcrumb">
+        <div className="breadcrumb" id="breadcrumb" style={{ display: isMobile ? 'none' : 'flex' }}>
           <i className="fa-solid fa-house"></i>
           <span id="bc-main" style={{ marginLeft: '8px' }}>{currentTabConfig.title}</span>
         </div>

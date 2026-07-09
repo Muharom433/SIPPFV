@@ -83,6 +83,9 @@ interface AppContextType extends AppState {
   setFilterTriwulan: (tw: string) => void;
   setFilterProdi: (prodi: string) => void;
   setSearchQuery: (query: string) => void;
+  isMobile: boolean;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -112,13 +115,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const toggleSidebar = useCallback(() => {
-    setSidebarCollapsed(prev => {
-      const next = !prev;
-      localStorage.setItem('sipp_sidebar_collapsed', String(next));
-      return next;
-    });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 900);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 900;
+      setIsMobile(mobile);
+      if (!mobile) setSidebarOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const toggleSidebar = useCallback(() => {
+    if (isMobile) {
+      setSidebarOpen(prev => !prev);
+    } else {
+      setSidebarCollapsed(prev => {
+        const next = !prev;
+        localStorage.setItem('sipp_sidebar_collapsed', String(next));
+        return next;
+      });
+    }
+  }, [isMobile]);
+
 
   // Clear search query on tab change
   useEffect(() => {
@@ -133,7 +154,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       sidebarCollapsed, toggleSidebar,
       filterYear, setFilterYear, filterTriwulan, setFilterTriwulan,
       filterProdi, setFilterProdi,
-      searchQuery, setSearchQuery
+      searchQuery, setSearchQuery,
+      isMobile, sidebarOpen, setSidebarOpen
     }}>
       {children}
     </AppContext.Provider>

@@ -10,7 +10,7 @@ import Swal from 'sweetalert2';
 
 export function Dashboard() {
   const { user } = useAuth();
-  const { prodiLinks } = useApp();
+  const { prodiLinks, isMobile } = useApp();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartInstance = useRef<any>(null);
 
@@ -447,19 +447,19 @@ export function Dashboard() {
         <div className="filter-bar-inner" style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '24px',
+          gap: isMobile ? '10px' : '24px',
           marginBottom: '28px',
-          padding: '16px 28px',
+          padding: isMobile ? '12px 16px' : '16px 28px',
           background: 'var(--white)',
           borderRadius: '20px',
           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 16px -6px rgba(0, 0, 0, 0.03)',
           border: '1px solid rgba(226, 232, 240, 0.8)',
           width: '100%'
         }}>
-          {/* Custom Searchable Dropdown (lebar dibatasi, tidak 100%) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', width: '100%', maxWidth: '460px' }} ref={dropdownRef}>
+          {/* Custom Searchable Dropdown */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', width: '100%', maxWidth: isMobile ? '100%' : '460px' }} ref={dropdownRef}>
 
-            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Program Studi:</span>
+            {!isMobile && <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Program Studi:</span>}
             <div style={{ flex: 1, position: 'relative' }}>
 
               <button
@@ -470,7 +470,7 @@ export function Dashboard() {
                   height: '40px',
                   borderRadius: '10px',
                   border: '1px solid var(--border)',
-                  padding: '0 12px',
+                  padding: isMobile ? '0 10px' : '0 12px',
                   fontWeight: 500,
                   color: 'var(--text)',
                   background: '#f8fafc',
@@ -480,12 +480,17 @@ export function Dashboard() {
                   fontSize: '0.88rem',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '8px'
+                  gap: '8px',
+                  whiteSpace: 'nowrap'
                 }}
               >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {selectedProdi ? `${selectedProdi} — ${prodiLinks.find(p => p.prodi_code === selectedProdi)?.prodi_name || ''}` : '— Pilih Prodi —'}
+                {isMobile && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0072ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                  </svg>
+                )}
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                  {selectedProdi ? (isMobile ? selectedProdi : `${selectedProdi} — ${prodiLinks.find(p => p.prodi_code === selectedProdi)?.prodi_name || ''}`) : '— Pilih Prodi —'}
                 </span>
                 <i className={`fa-solid fa-chevron-down`} style={{ fontSize: '0.8rem', color: 'var(--muted)', transition: 'transform 0.2s', transform: isDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
               </button>
@@ -496,7 +501,7 @@ export function Dashboard() {
                   position: 'absolute',
                   top: '46px',
                   left: 0,
-                  width: '320px',
+                  width: isMobile ? '100%' : '320px',
                   background: '#fff',
                   borderRadius: '12px',
                   boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.08)',
