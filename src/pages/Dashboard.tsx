@@ -377,9 +377,9 @@ export function Dashboard() {
             </div>
           </div>
         </div>
-        <div style={{ zIndex: 2, background: '#ffffff', padding: '24px 32px', borderRadius: '20px', minWidth: '220px', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)' }}>
-          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px', color: '#64748b', fontWeight: 600 }}>Tahun Anggaran</div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e3a8a', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+        <div style={{ zIndex: 2, minWidth: '220px', textAlign: 'center' }}>
+          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', color: '#ffffff', opacity: 0.9, fontWeight: 700 }}>Tahun Anggaran</div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e3a8a', background: '#ffffff', padding: '12px 24px', borderRadius: '16px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15)' }}>
             <i className="fa-solid fa-calendar-days" style={{ color: '#0284c7' }}></i> PERIODE 2026
           </div>
         </div>
