@@ -1,5 +1,7 @@
 import React from 'react';
 import { useAuth, useApp } from '../contexts/AuthContext';
+import Swal from 'sweetalert2';
+
 import { 
   fmtNum, 
   buildTree, 
@@ -92,18 +94,40 @@ export function RenstraTanggungJawab({
     return ids;
   }, [roots, searchQuery]);
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true
+  });
+
   const handleSaveTargetFakultas = async (id: number, val: string) => {
     try {
       await updateItem(id, { target_univ: val });
       onRefresh();
+      Toast.fire({
+        icon: 'success',
+        title: 'Target Fakultas berhasil disimpan'
+      });
     } catch (err: any) {
-      alert('Gagal menyimpan target fakultas: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
 
   const handleSaveTargetUnit = async (id: number, val: string) => {
     if (!activeProdi) {
-      alert('Pilih Prodi terlebih dahulu untuk mengisi Target Unit.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Pilih Prodi',
+        text: 'Pilih Prodi terlebih dahulu untuk mengisi Target Unit.',
+        confirmButtonColor: '#0072ff'
+      });
       return;
     }
 
@@ -128,21 +152,51 @@ export function RenstraTanggungJawab({
         amount: existingProg ? existingProg.amount : 0
       });
       onRefresh();
+      Toast.fire({
+        icon: 'success',
+        title: 'Target Unit berhasil disimpan'
+      });
     } catch (err: any) {
-      alert('Gagal menyimpan target unit: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Yakin ingin menghapus item ini beserta seluruh sub-item di bawahnya?')) {
-      try {
-        await deleteItem(id);
-        onRefresh();
-      } catch (err: any) {
-        alert(err.message);
+    Swal.fire({
+      title: 'Yakin ingin menghapus?',
+      text: 'Seluruh sub-item di bawahnya juga akan ikut terhapus!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteItem(id);
+          onRefresh();
+          Toast.fire({
+            icon: 'success',
+            title: 'Item berhasil dihapus'
+          });
+        } catch (err: any) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Menghapus',
+            text: err.message,
+            confirmButtonColor: '#0072ff'
+          });
+        }
       }
-    }
+    });
   };
+
 
   // Warning for admin if no prodi is filtered
   if (!activeProdi && isAdmin) {

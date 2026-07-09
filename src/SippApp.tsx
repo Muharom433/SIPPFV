@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth, useApp } from './contexts/AuthContext';
+import Swal from 'sweetalert2';
+
 import { getItems, createItem, updateItem, updateDriveLink, importRenstra } from './services/items.service';
 import { getProdiLinks, updateProdiLink, createProdiLink } from './services/prodi.service';
 import { getPurchases, createPurchase, updatePurchase } from './services/purchases.service';
@@ -311,17 +313,43 @@ export function SippApp() {
     setActiveModal('dukung');
   };
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true
+  });
+
   const handleSaveDriveLink = async () => {
     if (!ddItemId || !ddField) return;
-    if (!ddLink.trim()) return alert('Link Drive wajib diisi.');
+    if (!ddLink.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Input Link',
+        text: 'Link Drive wajib diisi.',
+        confirmButtonColor: '#0072ff'
+      });
+      return;
+    }
     try {
       await updateDriveLink(ddItemId, ddField, ddLink.trim());
       setActiveModal(null);
       refreshData();
+      Toast.fire({
+        icon: 'success',
+        title: 'Link Drive berhasil disimpan'
+      });
     } catch (err: any) {
-      alert(err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
+
 
   const handleOpenAddItem = () => {
     let type = 'keuangan_rka';
@@ -472,15 +500,29 @@ export function SippApp() {
     try {
       if (miId) {
         await updateItem(miId, payload);
+        Toast.fire({
+          icon: 'success',
+          title: 'Item berhasil diperbarui'
+        });
       } else {
         await createItem(payload);
+        Toast.fire({
+          icon: 'success',
+          title: 'Item berhasil ditambahkan'
+        });
       }
       setActiveModal(null);
       refreshData();
     } catch (err: any) {
-      alert(err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
+
 
   // 3. Modal: Capaian Renstra (Triwulan progress)
   const handleOpenCapaianModal = (itemId: number) => {
@@ -501,8 +543,25 @@ export function SippApp() {
   const handleSaveCapaianRenstra = async () => {
     if (!mcrItemId) return;
     const activeProdi = user?.role === 'admin' ? filterProdi : (user?.prodi_code || '');
-    if (!activeProdi) return alert('Pilih Prodi terlebih dahulu.');
-    if (!mcrDukung.trim()) return alert('Data Dukung (Link Google Drive) wajib diisi sebelum menyimpan.');
+    if (!activeProdi) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Pilih Prodi',
+        text: 'Pilih Prodi terlebih dahulu.',
+        confirmButtonColor: '#0072ff'
+      });
+      return;
+    }
+    if (!mcrDukung.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Input Data Dukung',
+        text: 'Data Dukung (Link Google Drive) wajib diisi sebelum menyimpan.',
+        confirmButtonColor: '#0072ff'
+      });
+      return;
+    }
+
 
     const activeTwNum = filterTriwulan === 'Triwulan 1' ? 1 
       : filterTriwulan === 'Triwulan 2' ? 2 
@@ -539,10 +598,20 @@ export function SippApp() {
       });
       setActiveModal(null);
       refreshData();
+      Toast.fire({
+        icon: 'success',
+        title: 'Capaian berhasil disimpan'
+      });
     } catch (err: any) {
-      alert(err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
+
 
   // 4. Modal: Add / Edit Purchase
   const handleOpenAddPurchase = () => {
@@ -572,7 +641,13 @@ export function SippApp() {
 
   const handleSavePurchase = async () => {
     if (!pbName.trim() || !pbQty || !pbPrice || !pbLink.trim()) {
-      return alert('Semua field bertanda * wajib diisi.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Input Tidak Lengkap',
+        text: 'Semua field bertanda * wajib diisi.',
+        confirmButtonColor: '#0072ff'
+      });
+      return;
     }
 
     const payload = {
@@ -587,57 +662,87 @@ export function SippApp() {
     try {
       if (pbId) {
         await updatePurchase(pbId, payload);
+        Toast.fire({
+          icon: 'success',
+          title: 'Pembelian berhasil diperbarui'
+        });
       } else {
         await createPurchase(payload);
+        Toast.fire({
+          icon: 'success',
+          title: 'Pembelian berhasil ditambahkan'
+        });
       }
       setActiveModal(null);
       refreshData();
     } catch (err: any) {
-      alert(err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
+
 
   // Excel Import/Export handlers
   const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!window.confirm('Peringatan: Mengimpor file Excel baru akan menghapus semua data Renstra tahun ' + filterYear + '. Apakah Anda yakin ingin melanjutkan?')) {
-      e.target.value = '';
-      return;
-    }
+    Swal.fire({
+      title: 'Apakah Anda yakin?',
+      text: 'Mengimpor file Excel baru akan menghapus semua data Renstra tahun ' + filterYear + '!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Impor!',
+      cancelButtonText: 'Batal'
+    }).then(async (result) => {
+      if (!result.isConfirmed) {
+        e.target.value = '';
+        return;
+      }
 
-    const reader = new FileReader();
-    reader.onload = async (evt) => {
-      try {
-        const data = evt.target?.result;
-        const workbook = XLSX.read(data, { type: 'binary' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        try {
+          const data = evt.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1 });
 
-        let headerRowIdx = -1;
-        let kodeColIdx = -1;
+          let headerRowIdx = -1;
+          let kodeColIdx = -1;
 
-        for (let i = 0; i < Math.min(rows.length, 15); i++) {
-          const row = rows[i];
-          if (!row) continue;
-          for (let j = 0; j < row.length; j++) {
-            const cellVal = row[j] ? String(row[j]).trim().toUpperCase() : '';
-            if (cellVal === 'KODE') {
-              headerRowIdx = i;
-              kodeColIdx = j;
-              break;
+          for (let i = 0; i < Math.min(rows.length, 15); i++) {
+            const row = rows[i];
+            if (!row) continue;
+            for (let j = 0; j < row.length; j++) {
+              const cellVal = row[j] ? String(row[j]).trim().toUpperCase() : '';
+              if (cellVal === 'KODE') {
+                headerRowIdx = i;
+                kodeColIdx = j;
+                break;
+              }
             }
+            if (headerRowIdx >= 0) break;
           }
-          if (headerRowIdx >= 0) break;
-        }
 
-        if (headerRowIdx < 0 || kodeColIdx < 0) {
-          alert('Format Excel tidak sesuai. Pastikan ada baris header dengan kolom "KODE".');
-          e.target.value = '';
-          return;
-        }
+          if (headerRowIdx < 0 || kodeColIdx < 0) {
+            Swal.fire({
+              icon: 'error',
+              title: 'Format Excel Salah',
+              text: 'Format Excel tidak sesuai. Pastikan ada baris header dengan kolom "KODE".',
+              confirmButtonColor: '#0072ff'
+            });
+            e.target.value = '';
+            return;
+          }
+
 
         const headerRow = rows[headerRowIdx];
         let satuanColIdx = kodeColIdx + 1;
@@ -743,21 +848,36 @@ export function SippApp() {
         }
 
         if (itemsToInsert.length === 0) {
-          alert('Format Excel tidak sesuai atau data kosong.');
+          Swal.fire({
+            icon: 'warning',
+            title: 'Data Kosong',
+            text: 'Format Excel tidak sesuai atau data kosong.',
+            confirmButtonColor: '#0072ff'
+          });
           e.target.value = '';
           return;
         }
 
         await importRenstra(itemsToInsert, filterYear);
-        alert('Data Renstra berhasil diimpor! (' + itemsToInsert.length + ' item)');
+        Toast.fire({
+          icon: 'success',
+          title: `Data Renstra berhasil diimpor! (${itemsToInsert.length} item)`
+        });
         refreshData();
       } catch (err: any) {
-        alert('Gagal mengimpor file: ' + err.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal Mengimpor',
+          text: err.message,
+          confirmButtonColor: '#0072ff'
+        });
       }
       e.target.value = '';
     };
     reader.readAsBinaryString(file);
+    });
   };
+
 
   const handleExportClick = () => {
     const { roots: rawRoots } = buildTree(items);
@@ -862,7 +982,15 @@ export function SippApp() {
   (window as any).handleOpenProdiLinksModal = handleOpenProdiLinksModal;
 
   const handleSaveProdiLinks = async () => {
-    if (!mpName.trim() || !mpCode.trim()) return alert('Nama dan Kode Prodi wajib diisi.');
+    if (!mpName.trim() || !mpCode.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Input Tidak Lengkap',
+        text: 'Nama dan Kode Prodi wajib diisi.',
+        confirmButtonColor: '#0072ff'
+      });
+      return;
+    }
     if (!mpId) return;
 
     const payload = {
@@ -882,10 +1010,20 @@ export function SippApp() {
       await updateProdiLink(mpId, payload, user?.role || 'user');
       setActiveModal(null);
       refreshData();
+      Toast.fire({
+        icon: 'success',
+        title: 'Link Prodi berhasil diperbarui'
+      });
     } catch (err: any) {
-      alert(err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
+
 
   // 6. Modal: Manajemen Prodi Add / Edit
   const handleOpenAddMprodi = () => {
@@ -910,7 +1048,15 @@ export function SippApp() {
   };
 
   const handleSaveMprodi = async () => {
-    if (!mprodiName.trim() || !mprodiCode.trim()) return alert('Kode dan Nama Prodi wajib diisi.');
+    if (!mprodiName.trim() || !mprodiCode.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Input Tidak Lengkap',
+        text: 'Kode dan Nama Prodi wajib diisi.',
+        confirmButtonColor: '#0072ff'
+      });
+      return;
+    }
 
     const payload: any = {
       prodi_name: mprodiName.trim(),
@@ -932,15 +1078,29 @@ export function SippApp() {
           payload.link_contoh_target = existing.link_contoh_target || '';
         }
         await updateProdiLink(mprodiId, payload, 'admin');
+        Toast.fire({
+          icon: 'success',
+          title: 'Data Prodi berhasil diperbarui'
+        });
       } else {
         await createProdiLink(payload);
+        Toast.fire({
+          icon: 'success',
+          title: 'Data Prodi berhasil ditambahkan'
+        });
       }
       setActiveModal(null);
       refreshData();
     } catch (err: any) {
-      alert(err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
+
 
   // 7. Modal: Manajemen Departemen Add / Edit
   const handleOpenAddMdept = () => {
@@ -961,20 +1121,42 @@ export function SippApp() {
   };
 
   const handleSaveMdept = async () => {
-    if (!mdeptCode.trim() || !mdeptName.trim()) return alert('Kode dan Nama Departemen wajib diisi.');
+    if (!mdeptCode.trim() || !mdeptName.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Input Tidak Lengkap',
+        text: 'Kode dan Nama Departemen wajib diisi.',
+        confirmButtonColor: '#0072ff'
+      });
+      return;
+    }
 
     try {
       if (mdeptId) {
         await updateDepartemen(mdeptId, mdeptCode.trim(), mdeptName.trim());
+        Toast.fire({
+          icon: 'success',
+          title: 'Departemen berhasil diperbarui'
+        });
       } else {
         await createDepartemen(mdeptCode.trim(), mdeptName.trim());
+        Toast.fire({
+          icon: 'success',
+          title: 'Departemen berhasil ditambahkan'
+        });
       }
       setActiveModal(null);
       refreshData();
     } catch (err: any) {
-      alert(err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     }
   };
+
 
   // 8. Modal: Renstra Rincian Kegiatan
   const handleOpenKegiatanModal = (itemId: number) => {

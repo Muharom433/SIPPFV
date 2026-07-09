@@ -1,5 +1,7 @@
 import React from 'react';
 import { useAuth, useApp } from '../contexts/AuthContext';
+import Swal from 'sweetalert2';
+
 import { 
   buildTree, 
   isAncestorCollapsed, 
@@ -160,7 +162,12 @@ export function RenstraCapaian({
             ) : (
               <button 
                 className="btn btn-secondary btn-sm btn-icon" 
-                onClick={() => alert('Belum ada data dukung (Google Drive) yang diunggah untuk periode ini.')} 
+                onClick={() => Swal.fire({
+                  icon: 'info',
+                  title: 'Data Dukung Kosong',
+                  text: 'Belum ada data dukung (Google Drive) yang diunggah untuk periode ini.',
+                  confirmButtonColor: '#0072ff'
+                })} 
                 title="Data Dukung Kosong" 
                 style={{ opacity: 0.5 }}
               >

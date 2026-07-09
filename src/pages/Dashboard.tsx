@@ -5,6 +5,8 @@ import { getRenstraProgress } from '../services/renstra.service';
 import { buildTree } from '../utils/helpers';
 import type { SipItem, RenstraProgress, TreeNode } from '../types';
 import Chart from 'chart.js/auto';
+import Swal from 'sweetalert2';
+
 
 export function Dashboard() {
   const { user } = useAuth();
@@ -78,7 +80,12 @@ export function Dashboard() {
   const handleTampilkanLaporan = async () => {
     const prodiCode = isAdmin ? selectedProdi : user?.prodi_code;
     if (!prodiCode) {
-      alert('Pilih Program Studi terlebih dahulu.');
+      Swal.fire({
+        icon: 'warning',
+        title: 'Pilih Program Studi',
+        text: 'Silakan pilih Program Studi terlebih dahulu.',
+        confirmButtonColor: '#0072ff'
+      });
       return;
     }
 
@@ -93,10 +100,16 @@ export function Dashboard() {
       const totalIkuCount = ikuItems.length;
 
       if (totalIkuCount === 0) {
-        alert('Belum ada data indikator (Level 4) pada Renstra.');
+        Swal.fire({
+          icon: 'info',
+          title: 'Data Kosong',
+          text: 'Belum ada data indikator (Level 4) pada Renstra.',
+          confirmButtonColor: '#0072ff'
+        });
         setLoading(false);
         return;
       }
+
 
       const isComplete = (itemId: number, tw: number) => {
         const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
@@ -155,8 +168,14 @@ export function Dashboard() {
 
       setActiveTwBreakdown(null);
     } catch (err: any) {
-      alert('Gagal memuat laporan: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Memuat Laporan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     } finally {
+
       setLoading(false);
     }
   };
@@ -438,7 +457,8 @@ export function Dashboard() {
           width: '100%'
         }}>
           {/* Custom Searchable Dropdown (lebar dibatasi, tidak 100%) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', width: '460px' }} ref={dropdownRef}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', position: 'relative', width: '100%', maxWidth: '460px' }} ref={dropdownRef}>
+
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Program Studi:</span>
             <div style={{ flex: 1, position: 'relative' }}>
 

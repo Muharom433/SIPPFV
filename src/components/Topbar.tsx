@@ -1,4 +1,6 @@
 import { useAuth, useApp } from '../contexts/AuthContext';
+import Swal from 'sweetalert2';
+
 
 const TAB_CONFIG: Record<string, { title: string }> = {
   'dashboard': { title: 'Dashboard' },
@@ -21,10 +23,22 @@ export function Topbar() {
   const currentTabConfig = TAB_CONFIG[tab] || { title: tab };
 
   const handleLogout = () => {
-    if (window.confirm('Apakah Anda yakin ingin keluar dari sistem?')) {
-      logout();
-    }
+    Swal.fire({
+      title: 'Yakin ingin keluar?',
+      text: 'Anda akan keluar dari sistem SIGAP.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Keluar!',
+      cancelButtonText: 'Batal'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        logout();
+      }
+    });
   };
+
 
   const getAvatarText = () => {
     if (!user) return 'US';

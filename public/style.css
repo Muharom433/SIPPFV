@@ -1499,6 +1499,7 @@ body:not(.not-logged-in) .login-screen {
   animation: pulse-pink 2s infinite;
 }
 
+
 @keyframes pulse-pink {
   0% {
     box-shadow: 0 0 0 0 rgba(219, 39, 119, 0.4);
@@ -1510,4 +1511,46 @@ body:not(.not-logged-in) .login-screen {
     box-shadow: 0 0 0 0 rgba(219, 39, 119, 0);
   }
 }
+
+/* ── MOBILE RESPONSIVE ADAPTATIONS ─────────────────────── */
+@media (max-width: 768px) {
+  .lap-banner {
+    padding: 20px 24px !important;
+    border-radius: 16px !important;
+    gap: 16px !important;
+  }
+  .lap-banner-header h2 {
+    font-size: 1.4rem !important;
+  }
+  .lap-banner-header p {
+    font-size: 0.85rem !important;
+  }
+  .lap-banner-actions {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+  .lap-banner-actions .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  .filter-bar-inner {
+    padding: 12px 20px !important;
+    border-radius: 16px !important;
+    gap: 16px !important;
+  }
+  .filter-bar-inner > div {
+    min-width: 100% !important;
+    width: 100% !important;
+  }
+  .filter-bar-inner button, .filter-bar-inner .btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  /* Table wrapping for mobile */
+  .tbl-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 

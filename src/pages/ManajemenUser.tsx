@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getUsers, createUser, updateUser, deleteUser } from '../services/user.service';
 import type { User } from '../types';
+import Swal from 'sweetalert2';
+
 
 export function ManajemenUser() {
   const [users, setUsers] = useState<User[]>([]);
@@ -17,17 +19,31 @@ export function ManajemenUser() {
   const [formProdiCode, setFormProdiCode] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true
+  });
+
   const loadUsers = async () => {
     setLoading(true);
     try {
       const data = await getUsers();
       setUsers(data);
     } catch (err: any) {
-      alert('Gagal memuat pengguna: ' + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Memuat Pengguna',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     loadUsers();
@@ -54,15 +70,36 @@ export function ManajemenUser() {
   };
 
   const handleDelete = async (id: number, username: string) => {
-    if (window.confirm(`Yakin ingin menghapus pengguna "${username}"?`)) {
-      try {
-        await deleteUser(id);
-        loadUsers();
-      } catch (err: any) {
-        alert(err.message);
+    Swal.fire({
+      title: 'Yakin ingin menghapus?',
+      text: `Pengguna "${username}" akan dihapus permanen!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteUser(id);
+          loadUsers();
+          Toast.fire({
+            icon: 'success',
+            title: 'Pengguna berhasil dihapus'
+          });
+        } catch (err: any) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Menghapus',
+            text: err.message,
+            confirmButtonColor: '#0072ff'
+          });
+        }
       }
-    }
+    });
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +113,10 @@ export function ManajemenUser() {
           role: formRole,
           prodi_code: formRole === 'admin' ? null : (formProdiCode || null)
         });
+        Toast.fire({
+          icon: 'success',
+          title: 'Pengguna berhasil ditambahkan'
+        });
       } else {
         await updateUser(formId!, {
           username: formUsername,
@@ -83,11 +124,20 @@ export function ManajemenUser() {
           role: formRole,
           prodi_code: formRole === 'admin' ? null : (formProdiCode || null)
         });
+        Toast.fire({
+          icon: 'success',
+          title: 'Pengguna berhasil diperbarui'
+        });
       }
       setIsModalOpen(false);
       loadUsers();
     } catch (err: any) {
-      alert(err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menyimpan',
+        text: err.message,
+        confirmButtonColor: '#0072ff'
+      });
     } finally {
       setSaving(false);
     }

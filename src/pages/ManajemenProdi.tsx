@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useApp } from '../contexts/AuthContext';
 import { deleteProdiLink } from '../services/prodi.service';
+import Swal from 'sweetalert2';
+
 
 
 interface ManajemenProdiProps {
@@ -18,18 +20,47 @@ export function ManajemenProdi({
   const [searchQuery, setSearchQuery] = useState('');
 
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2000,
+    timerProgressBar: true
+  });
+
   const handleDelete = async (id: number) => {
     const prodi = prodiLinks.find(p => p.id === id);
     const name = prodi ? prodi.prodi_name : '';
-    if (window.confirm(`Yakin ingin menghapus prodi "${name}" beserta seluruh data link dan akun user terkait?`)) {
-      try {
-        await deleteProdiLink(id);
-        onRefresh();
-      } catch (err: any) {
-        alert(err.message);
+    Swal.fire({
+      title: 'Yakin ingin menghapus?',
+      text: `Prodi "${name}" beserta seluruh data link dan akun user terkait akan dihapus permanen!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Ya, Hapus!',
+      cancelButtonText: 'Batal'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteProdiLink(id);
+          onRefresh();
+          Toast.fire({
+            icon: 'success',
+            title: 'Prodi berhasil dihapus'
+          });
+        } catch (err: any) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Menghapus',
+            text: err.message,
+            confirmButtonColor: '#0072ff'
+          });
+        }
       }
-    }
+    });
   };
+
 
   return (
     <div className="view" id="view-manajemen-prodi">
@@ -84,7 +115,7 @@ export function ManajemenProdi({
         width: '100%',
         marginBottom: '24px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: '320px', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '320px', minWidth: '240px', flex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, position: 'relative' }}>
             <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text)', whiteSpace: 'nowrap' }}>Cari:</span>
             <div style={{ position: 'relative', flex: 1 }}>
