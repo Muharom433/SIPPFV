@@ -347,20 +347,6 @@ export function Dashboard() {
           <circle cx="620" cy="40" r="100" fill="none" stroke="rgba(255, 255, 255, 0.18)" strokeWidth="1.5" />
         </svg>
 
-        {/* 4-point Sparkle SVG in bottom-right corner (Highly Visible) */}
-        <svg viewBox="0 0 24 24" fill="currentColor" style={{
-          position: 'absolute',
-          right: '30px',
-          bottom: '22px',
-          width: '22px',
-          height: '22px',
-          color: 'rgba(255, 255, 255, 0.9)',
-          pointerEvents: 'none',
-          zIndex: 2
-        }}>
-          <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z" />
-        </svg>
-
         <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
           <span style={{ 
             fontSize: '0.72rem', 
@@ -378,11 +364,11 @@ export function Dashboard() {
           <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
             Pelaporan Capaian Kinerja Utama
           </h2>
-          <p style={{ fontSize: '0.95rem', opacity: 0.8, maxWidth: '600px', lineHeight: 1.65, marginBottom: '24px', color: '#cbd5e1' }}>
+          <p style={{ fontSize: '0.98rem', maxWidth: '600px', lineHeight: 1.65, marginBottom: '24px', color: '#ffffff', fontWeight: 500 }}>
             Pantau dan lengkapi pelaporan realisasi IKU Anda secara bertahap. Pastikan setiap data dukung sesuai dengan standar validasi nasional.
           </p>
           <div style={{ maxWidth: '450px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', marginBottom: '8px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#cbd5e1' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '8px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#ffffff' }}>
               <span>Penyelesaian Laporan Tahunan</span>
               <span style={{ color: '#64ffda', fontWeight: 700 }}>{reportData ? reportData.overallPct : 0}%</span>
             </div>
@@ -391,10 +377,10 @@ export function Dashboard() {
             </div>
           </div>
         </div>
-        <div style={{ zIndex: 2, background: 'rgba(255,255,255,0.04)', padding: '24px 32px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.08)', minWidth: '220px', textAlign: 'center', boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)' }}>
-          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', opacity: 0.8, marginBottom: '10px', color: '#cbd5e1', fontWeight: 600 }}>Tahun Anggaran</div>
-          <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text)', background: 'var(--white)', padding: '10px 20px', borderRadius: '12px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}>
-            <i className="fa-solid fa-calendar-days" style={{ color: 'var(--blue)' }}></i> PERIODE 2026
+        <div style={{ zIndex: 2, background: '#ffffff', padding: '24px 32px', borderRadius: '20px', minWidth: '220px', textAlign: 'center', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15)' }}>
+          <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px', color: '#64748b', fontWeight: 600 }}>Tahun Anggaran</div>
+          <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#1e3a8a', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <i className="fa-solid fa-calendar-days" style={{ color: '#0284c7' }}></i> PERIODE 2026
           </div>
         </div>
       </div>

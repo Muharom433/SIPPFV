@@ -146,19 +146,7 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
           <circle cx="620" cy="40" r="100" fill="none" stroke="rgba(255, 255, 255, 0.18)" strokeWidth="1.5" />
         </svg>
 
-        {/* 4-point Sparkle SVG in bottom-right corner (Highly Visible) */}
-        <svg viewBox="0 0 24 24" fill="currentColor" style={{
-          position: 'absolute',
-          right: '30px',
-          bottom: '22px',
-          width: '22px',
-          height: '22px',
-          color: 'rgba(255, 255, 255, 0.9)',
-          pointerEvents: 'none',
-          zIndex: 2
-        }}>
-          <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z" />
-        </svg>
+
 
         <div style={{ flex: 1, minWidth: '280px', zIndex: 2 }}>
           <span style={{ 
