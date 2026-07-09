@@ -87,11 +87,28 @@ export function Sidebar() {
         }
         .logo-sip {
           font-family: 'Outfit', sans-serif;
-          color: #0284c7 !important;
+          color: #1e3a8a !important;
           font-weight: 800;
           font-style: italic;
           font-size: 2.4rem !important;
         }
+        /* Collapsed specific overrides to prevent clipping and hide yellow dot */
+        .sidebar.collapsed:not(:hover) .sidebar-logo {
+          padding: 22px 0 !important;
+          justify-content: center !important;
+        }
+        .sidebar.collapsed:not(:hover) .logo-sip {
+          font-size: 1.25rem !important;
+          letter-spacing: -0.5px !important;
+          font-style: normal !important;
+          display: block !important;
+          text-align: center !important;
+          width: 100% !important;
+        }
+        .sidebar.collapsed:not(:hover) .sidenav .nav-item.active > a::after {
+          display: none !important;
+        }
+
         .sidenav .nav-item a, .sidenav .nav-group-header {
           border-radius: 12px !important;
           margin: 4px 12px !important;
@@ -105,9 +122,9 @@ export function Sidebar() {
           color: #1e293b !important;
         }
         .sidenav .nav-item.active > a, .sidenav .nav-group.open > .nav-group-header {
-          background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+          background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
           color: #ffffff !important;
-          box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25) !important;
+          box-shadow: 0 4px 14px rgba(30, 58, 138, 0.25) !important;
           font-weight: 600 !important;
           position: relative !important;
         }
@@ -148,10 +165,10 @@ export function Sidebar() {
           width: 100%;
         }
         .nav-sub li.active {
-          background: rgba(2, 132, 199, 0.1) !important;
+          background: rgba(30, 58, 138, 0.08) !important;
         }
         .nav-sub li.active a {
-          color: #0284c7 !important;
+          color: #1e3a8a !important;
           font-weight: 600 !important;
         }
         .nav-sub li:hover:not(.active) {
