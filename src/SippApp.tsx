@@ -790,15 +790,22 @@ export function SippApp() {
             description.toUpperCase().startsWith('TAHUN:')) continue;
 
           let level = 0;
-          if (merchantsEndCol <= 1) {
-            const desc = description.toLowerCase();
-            if (desc.includes('kegiatan:') || desc.startsWith('kegiatan ')) level = 5;
-            else if (desc.includes('[iku') || desc.match(/^[\d.]+\s*\[iku/i)) level = 4;
-            else if (desc.includes('[p') && desc.match(/\[p\d/i)) level = 3;
-            else if (desc.includes('bidang') || desc.match(/^\d+\.\s*bidang/i)) level = 2;
-            else level = 1;
-          } else {
-            level = Math.min(Math.max(lastNonEmptyCol + 1, 1), 5);
+          const desc = description.toLowerCase();
+          
+          if (desc.includes('kegiatan') || desc.match(/^\d+\.\s*kegiatan/i)) level = 5;
+          else if (desc.includes('[iku') || desc.match(/^[\d.]+\s*\[iku/i)) level = 4;
+          else if (desc.includes('[p') && desc.match(/\[p\d/i)) level = 3;
+          else if (desc.includes('bidang') || desc.match(/^\d+\.\s*bidang/i)) level = 2;
+          else if (desc.includes('rencana strategis') || desc.startsWith('renstra')) level = 1;
+          else {
+            if (merchantsEndCol <= 1) {
+              level = 5; // Default to lowest if no indentation and no text clues
+            } else {
+              if (lastNonEmptyCol === 0) level = 2;
+              else if (lastNonEmptyCol === 1) level = 3;
+              else if (lastNonEmptyCol === 2) level = 4;
+              else level = 5;
+            }
           }
 
           const kode = row[kodeColIdx] !== undefined && row[kodeColIdx] !== null ? String(row[kodeColIdx]).trim() : '';
@@ -893,6 +900,14 @@ export function SippApp() {
       [],
     ];
 
+    const parseNumeric = (val: any) => {
+      if (val === null || val === undefined || val === '') return '';
+      if (val.toString().includes(':')) return val; // e.g. "1:20" ratio
+      const cleaned = val.toString().replace(/,/g, '.');
+      const num = Number(cleaned);
+      return isNaN(num) ? val : num;
+    };
+
     if (isCapaian) {
       dataRows.push(['URAIAN', '', '', '', '', 'KODE', 'SATUAN', 'TARGET FAKULTAS', 'TARGET UNIT', 'DATA PENDUKUNG', 'CAPAIAN', 'CAPAIAN %', 'PROGRESS/KEGIATAN', 'KENDALA/PERMASALAHAN', 'STRATEGI/TINDAK LANJUT']);
     } else {
@@ -912,38 +927,42 @@ export function SippApp() {
         const strategyVal = prog?.strategy || '';
         const dukungVal = prog?.supporting_data_link || '';
 
-        const row = [
-          node.description,
-          '',
-          '',
-          '',
-          '',
-          node.code || '',
-          node.satuan || '',
-          node.target_univ || '',
-          prog?.target_unit || '',
-          dukungVal,
-          cap,
-          capPct ? capPct + '%' : '',
-          progressVal,
-          issuesVal,
-          strategyVal
-        ];
+        const row = Array(15).fill('');
+        let indentCol = 0;
+        if (node.level === 1 || node.level === 2) indentCol = 0;
+        else if (node.level === 3) indentCol = 1;
+        else if (node.level === 4) indentCol = 2;
+        else if (node.level >= 5) indentCol = 3;
+        
+        row[indentCol] = node.description;
+        row[5] = node.code || '';
+        row[6] = node.satuan || '';
+        row[7] = parseNumeric(node.target_univ);
+        row[8] = parseNumeric(prog?.target_unit);
+        row[9] = dukungVal;
+        row[10] = cap;
+        row[11] = capPct ? capPct + '%' : '';
+        row[12] = progressVal;
+        row[13] = issuesVal;
+        row[14] = strategyVal;
+        
         dataRows.push(row);
       } else {
         const displayAmount = prog ? prog.amount : (node._progAmount !== undefined ? node._progAmount : node.amount);
-        const row = [
-          node.description,
-          '',
-          '',
-          '',
-          '',
-          node.code || '',
-          node.satuan || '',
-          node.target_univ || '',
-          prog?.target_unit || '',
-          displayAmount || 0
-        ];
+        const row = Array(10).fill('');
+        let indentCol = 0;
+        if (node.level === 1 || node.level === 2) indentCol = 0;
+        else if (node.level === 3) indentCol = 1;
+        else if (node.level === 4) indentCol = 2;
+        else if (node.level >= 5) indentCol = 3;
+        
+        row[indentCol] = node.description;
+        row[5] = node.code || '';
+        row[6] = node.satuan || '';
+        row[7] = parseNumeric(node.target_univ);
+        row[8] = parseNumeric(prog?.target_unit);
+        row[9] = displayAmount || 0;
+        
         dataRows.push(row);
       }
 
@@ -955,6 +974,54 @@ export function SippApp() {
     rawRoots.forEach(addNode);
 
     const ws = XLSX.utils.aoa_to_sheet(dataRows);
+
+    // Dynamic columns configuration
+    const maxCols = isCapaian ? 15 : 10;
+    const cols = [
+      { wch: 35 }, // Col A
+      { wch: 30 }, // Col B
+      { wch: 35 }, // Col C
+      { wch: 40 }, // Col D
+      { wch: 5 },  // Col E (Separator space)
+      { wch: 10 }, // Col F (KODE)
+      { wch: 12 }, // Col G (SATUAN)
+      { wch: 18 }, // Col H (TARGET FAKULTAS)
+      { wch: 18 }, // Col I (TARGET UNIT)
+    ];
+    if (isCapaian) {
+      cols.push(
+        { wch: 25 }, // Col J (DATA PENDUKUNG)
+        { wch: 15 }, // Col K (CAPAIAN)
+        { wch: 12 }, // Col L (CAPAIAN %)
+        { wch: 35 }, // Col M (PROGRESS/KEGIATAN)
+        { wch: 30 }, // Col N (KENDALA)
+        { wch: 30 }  // Col O (STRATEGI)
+      );
+    } else {
+      cols.push({ wch: 20 }); // Col J (ANGGARAN)
+    }
+    ws['!cols'] = cols;
+
+    // Define cell merges
+    const merges = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: maxCols - 1 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: maxCols - 1 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: maxCols - 1 } },
+      { s: { r: 4, c: 0 }, e: { r: 4, c: 4 } } // Merge URAIAN header columns A-E
+    ];
+    ws['!merges'] = merges;
+
+    // Apply currency formatting to ANGGARAN column
+    if (!isCapaian) {
+      for (let r = 5; r < dataRows.length; r++) {
+        const cellRef = XLSX.utils.encode_cell({ r, c: 9 });
+        if (ws[cellRef]) {
+          ws[cellRef].t = 'n';
+          ws[cellRef].z = '#,##0'; // Indonesian thousands separator formatting
+        }
+      }
+    }
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Renstra');
     XLSX.writeFile(wb, `Renstra_${isCapaian ? 'Capaian' : 'TanggungJawab'}_${filterYear}.xlsx`);

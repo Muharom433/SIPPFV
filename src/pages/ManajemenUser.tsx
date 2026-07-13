@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { getUsers, createUser, updateUser, deleteUser } from '../services/user.service';
+import { useApp } from '../contexts/AuthContext';
 import type { User } from '../types';
 import Swal from 'sweetalert2';
 
 
 export function ManajemenUser() {
+  const { prodiLinks } = useApp();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -323,7 +325,18 @@ export function ManajemenUser() {
                 {formRole === 'user' && (
                   <div className="fg">
                     <label>Kode Prodi (opsional jika departemen)</label>
-                    <input type="text" value={formProdiCode} onChange={(e) => setFormProdiCode(e.target.value)} placeholder="Contoh: D4-TS" />
+                    <select 
+                      className="flt-select" 
+                      value={formProdiCode} 
+                      onChange={(e) => setFormProdiCode(e.target.value)}
+                    >
+                      <option value="">— Pilih Program Studi (opsional) —</option>
+                      {prodiLinks.map((p) => (
+                        <option key={p.id} value={p.prodi_code}>
+                          {p.prodi_code} — {p.prodi_name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 )}
                 <div className="modal-ftr" style={{ marginTop: '24px' }}>

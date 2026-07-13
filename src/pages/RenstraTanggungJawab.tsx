@@ -46,7 +46,7 @@ export function RenstraTanggungJawab({
   // Filter items by year
   const yearItems = items.filter(item => {
     const date = new Date(item.created_at);
-    return date.getFullYear() === filterYear;
+    return date.getUTCFullYear() === filterYear;
   });
 
   const { roots, map } = buildTree(yearItems);
@@ -242,6 +242,7 @@ export function RenstraTanggungJawab({
       if (isAdmin) {
         targetFakultasHtml = (
           <input 
+            key={`${filterYear}_${node.id}`}
             type="text" 
             className="table-input" 
             defaultValue={node.target_univ || ''} 
@@ -256,6 +257,7 @@ export function RenstraTanggungJawab({
       if (activeProdi) {
         targetUnitHtml = (
           <input 
+            key={`${filterYear}_${filterTriwulan}_${activeProdi}_${node.id}`}
             type="text" 
             className="table-input" 
             defaultValue={progTargetUnit} 

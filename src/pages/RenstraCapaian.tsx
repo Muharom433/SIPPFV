@@ -36,7 +36,7 @@ export function RenstraCapaian({
   // Filter items by year
   const yearItems = items.filter(item => {
     const date = new Date(item.created_at);
-    return date.getFullYear() === filterYear;
+    return date.getUTCFullYear() === filterYear;
   });
 
   const { roots, map } = buildTree(yearItems);

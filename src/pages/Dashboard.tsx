@@ -8,6 +8,16 @@ import Chart from 'chart.js/auto';
 import Swal from 'sweetalert2';
 
 
+// Helper to parse numeric values from target / achievement strings
+const parseNumericValue = (str: string | null | undefined): number | null => {
+  if (!str) return null;
+  const clean = str.replace(/[^0-9.]/g, '');
+  const val = parseFloat(clean);
+  return isNaN(val) ? null : val;
+};
+
+
+
 export function Dashboard() {
   const { user } = useAuth();
   const { prodiLinks, isMobile } = useApp();
@@ -45,6 +55,7 @@ export function Dashboard() {
   } | null>(null);
 
   const [activeTwBreakdown, setActiveTwBreakdown] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<'rincian' | 'analisis'>('rincian');
   const [expandedBidangs, setExpandedBidangs] = useState<Record<number, boolean>>({});
   const breakdownRef = useRef<HTMLDivElement>(null);
 
@@ -311,9 +322,10 @@ export function Dashboard() {
     });
   };
 
-  const handleLihatRincian = (tw: number) => {
+  const handleLihatRincian = (tw: number, tab: 'rincian' | 'analisis' = 'rincian') => {
     setExpandedBidangs({});
     setActiveTwBreakdown(tw);
+    setActiveTab(tab);
     setTimeout(() => {
       breakdownRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -820,7 +832,7 @@ export function Dashboard() {
                       <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--blue)', marginTop: '2px' }}>{stats.dataDukung} / {reportData.totalIku} Indikator</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', minWidth: '120px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', minWidth: '140px' }}>
                     {/* Circle SVG */}
                     <div className="circular-progress-wrap" style={{ position: 'relative', width: '80px', height: '80px' }}>
                       <svg width="80" height="80" viewBox="0 0 80 80">
@@ -834,10 +846,17 @@ export function Dashboard() {
                     </div>
                     <button 
                       className="btn btn-primary btn-sm" 
-                      onClick={() => handleLihatRincian(tw)}
-                      style={{ width: '100%', justifyContent: 'center', fontWeight: 600, fontSize: '0.78rem', padding: '6px 12px', background: '#0f172a', borderColor: '#0f172a', borderRadius: '6px' }}
+                      onClick={() => handleLihatRincian(tw, 'rincian')}
+                      style={{ width: '100%', justifyContent: 'center', fontWeight: 600, fontSize: '0.72rem', padding: '6px 10px', background: '#0f172a', borderColor: '#0f172a', borderRadius: '6px', whiteSpace: 'nowrap' }}
                     >
-                      LIHAT RINCIAN <i className="fa-solid fa-arrow-right" style={{ marginLeft: '4px', fontSize: '0.7rem' }}></i>
+                      LIHAT RINCIAN <i className="fa-solid fa-arrow-right" style={{ marginLeft: '4px', fontSize: '0.65rem' }}></i>
+                    </button>
+                    <button 
+                      className="btn btn-secondary btn-sm" 
+                      onClick={() => handleLihatRincian(tw, 'analisis')}
+                      style={{ width: '100%', justifyContent: 'center', fontWeight: 600, fontSize: '0.72rem', padding: '6px 10px', borderRadius: '6px', background: 'linear-gradient(135deg, #0284c7, #0ea5e9)', color: '#fff', border: 'none', whiteSpace: 'nowrap' }}
+                    >
+                      ANALISIS KINERJA <i className="fa-solid fa-chart-line" style={{ marginLeft: '4px', fontSize: '0.65rem' }}></i>
                     </button>
                   </div>
                 </div>
@@ -849,10 +868,19 @@ export function Dashboard() {
           {activeTwBreakdown !== null && (
             <div ref={breakdownRef} id="lap-breakdown-section" style={{ scrollMarginTop: '80px' }}>
               <hr style={{ border: 0, borderTop: '1px solid var(--border)', margin: '32px 0 24px' }} />
+              
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.1rem', color: 'var(--text)', fontWeight: 700 }}>Rincian Ketidaklengkapan Triwulan {activeTwBreakdown}</h3>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>Daftar IKU yang belum diisi lengkap beserta field yang masih kosong</p>
+                  <h3 style={{ fontSize: '1.1rem', color: 'var(--text)', fontWeight: 700 }}>
+                    {activeTab === 'rincian' 
+                      ? `Rincian Ketidaklengkapan Triwulan ${activeTwBreakdown}` 
+                      : `Analisis Kinerja Target Triwulan ${activeTwBreakdown}`}
+                  </h3>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>
+                    {activeTab === 'rincian'
+                      ? 'Daftar IKU yang belum diisi lengkap beserta field yang masih kosong'
+                      : 'Komparasi realisasi capaian unit terhadap target fakultas dan target triwulan'}
+                  </p>
                 </div>
                 <button 
                   className="btn btn-secondary btn-sm" 
@@ -860,6 +888,48 @@ export function Dashboard() {
                   style={{ fontSize: '0.75rem', borderRadius: '6px' }}
                 >
                   <i className="fa-solid fa-arrow-up"></i> Kembali ke Atas
+                </button>
+              </div>
+
+              {/* Tab Navigation */}
+              <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+                <button
+                  onClick={() => setActiveTab('rincian')}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: '1px solid ' + (activeTab === 'rincian' ? '#0f172a' : '#cbd5e1'),
+                    background: activeTab === 'rincian' ? '#0f172a' : 'var(--white)',
+                    color: activeTab === 'rincian' ? '#fff' : 'var(--text)',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <i className="fa-solid fa-file-circle-exclamation"></i> Rincian Ketidaklengkapan
+                </button>
+                <button
+                  onClick={() => setActiveTab('analisis')}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    border: activeTab === 'analisis' ? 'none' : '1px solid #cbd5e1',
+                    background: activeTab === 'analisis' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : 'var(--white)',
+                    color: activeTab === 'analisis' ? '#fff' : 'var(--text)',
+                    fontWeight: 600,
+                    fontSize: '0.78rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <i className="fa-solid fa-chart-line"></i> Analisis Kinerja Target
                 </button>
               </div>
 
@@ -871,85 +941,282 @@ export function Dashboard() {
                 border: '1px solid rgba(226, 232, 240, 0.8)',
                 marginBottom: '32px'
               }}>
-                <table className="htable" id="tbl-laporan-breakdown">
-                  <thead>
-                    <tr>
-                      <th style={{ width: '32px' }}></th>
-                      <th className="text-left">Bidang</th>
-                      <th style={{ width: '220px' }} className="text-left">Progress</th>
-                      <th style={{ width: '80px' }} className="text-center">%</th>
-                      <th style={{ width: '90px' }} className="text-center">Terisi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getBreakdownRows().map(bidang => {
-                      const clr = pctColor(bidang.pct);
-                      const icon = bidang.pct === 100
-                        ? <i className="fa-solid fa-circle-check" style={{ color: '#22c55e' }}></i>
-                        : <i className="fa-solid fa-circle-half-stroke" style={{ color: '#f97316' }}></i>;
+                {activeTab === 'rincian' ? (
+                  <table className="htable" id="tbl-laporan-breakdown">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '32px' }}></th>
+                        <th className="text-left">Bidang</th>
+                        <th style={{ width: '220px' }} className="text-left">Progress</th>
+                        <th style={{ width: '80px' }} className="text-center">%</th>
+                        <th style={{ width: '90px' }} className="text-center">Terisi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getBreakdownRows().map(bidang => {
+                        const clr = pctColor(bidang.pct);
+                        const icon = bidang.pct === 100
+                          ? <i className="fa-solid fa-circle-check" style={{ color: '#22c55e' }}></i>
+                          : <i className="fa-solid fa-circle-half-stroke" style={{ color: '#f97316' }}></i>;
 
-                      const incomplete = bidang.ikuItems.filter(it => !it.complete);
-                      const isExpanded = !!expandedBidangs[bidang.id];
+                        const incomplete = bidang.ikuItems.filter(it => !it.complete);
+                        const isExpanded = !!expandedBidangs[bidang.id];
 
-                      return (
-                        <React.Fragment key={bidang.id}>
-                          <tr 
-                            className="lap-row-bidang" 
-                            onClick={() => toggleBidang(bidang.id)}
-                            style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
-                          >
-                            <td className="text-center">{icon}</td>
-                            <td className="text-left">
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                                <strong>{bidang.code} — {bidang.name}</strong>
-                                <i className={`fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ color: 'var(--muted)', fontSize: '0.75rem' }}></i>
-                              </span>
-                            </td>
-                            <td>
-                              <div className="progress-bar-wrap">
-                                <div className="progress-bar-fill" style={{ width: `${bidang.pct}%`, background: clr }}></div>
-                              </div>
-                            </td>
-                            <td className="text-center" style={{ color: clr, fontWeight: 700 }}>{bidang.pct}%</td>
-                            <td className="text-center" style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{bidang.filled}/{bidang.total}</td>
-                          </tr>
-                          
-                          {isExpanded && incomplete.map(({ node, prog }: any) => {
-                            const missing: string[] = [];
-                            if (!prog?.capaian?.trim())               missing.push('Capaian');
-                            if (!prog?.progress?.trim())              missing.push('Progress');
-                            if (!prog?.issues?.trim())                missing.push('Kendala');
-                            if (!prog?.strategy?.trim())              missing.push('Strategi');
-                            if (!prog?.supporting_data_link?.trim())  missing.push('Data Dukung');
+                        return (
+                          <React.Fragment key={bidang.id}>
+                            <tr 
+                              className="lap-row-bidang" 
+                              onClick={() => toggleBidang(bidang.id)}
+                              style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
+                            >
+                              <td className="text-center">{icon}</td>
+                              <td className="text-left">
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                  <strong>{bidang.code} — {bidang.name}</strong>
+                                  <i className={`fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ color: 'var(--muted)', fontSize: '0.75rem' }}></i>
+                                </span>
+                              </td>
+                              <td>
+                                <div className="progress-bar-wrap">
+                                  <div className="progress-bar-fill" style={{ width: `${bidang.pct}%`, background: clr }}></div>
+                                </div>
+                              </td>
+                              <td className="text-center" style={{ color: clr, fontWeight: 700 }}>{bidang.pct}%</td>
+                              <td className="text-center" style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>{bidang.filled}/{bidang.total}</td>
+                            </tr>
+                            
+                            {isExpanded && incomplete.map(({ node, prog }: any) => {
+                              const missing: string[] = [];
+                              if (!prog?.capaian?.trim())               missing.push('Capaian');
+                              if (!prog?.progress?.trim())              missing.push('Progress');
+                              if (!prog?.issues?.trim())                missing.push('Kendala');
+                              if (!prog?.strategy?.trim())              missing.push('Strategi');
+                              if (!prog?.supporting_data_link?.trim())  missing.push('Data Dukung');
 
-                            return (
-                              <tr key={node.id} className="lap-row-iku">
-                                <td className="text-center"><i className="fa-solid fa-triangle-exclamation" style={{ color: '#f97316', fontSize: '0.8rem' }}></i></td>
-                                <td className="text-left" style={{ paddingLeft: '24px' }}>
-                                  {node.code ? <span style={{ color: 'var(--muted)', marginRight: '6px' }}>{node.code}</span> : ''}
-                                  {node.description}
-                                </td>
-                                <td colSpan={3} className="text-left">
-                                  <span style={{ color: 'var(--muted)' }}>Belum diisi: </span>
-                                  <strong style={{ color: '#ef4444' }}>{missing.join(', ')}</strong>
+                              return (
+                                <tr key={node.id} className="lap-row-iku">
+                                  <td className="text-center"><i className="fa-solid fa-triangle-exclamation" style={{ color: '#f97316', fontSize: '0.8rem' }}></i></td>
+                                  <td className="text-left" style={{ paddingLeft: '24px' }}>
+                                    {node.code ? <span style={{ color: 'var(--muted)', marginRight: '6px' }}>{node.code}</span> : ''}
+                                    {node.description}
+                                  </td>
+                                  <td colSpan={3} className="text-left">
+                                    <span style={{ color: 'var(--muted)' }}>Belum diisi: </span>
+                                    <strong style={{ color: '#ef4444' }}>{missing.join(', ')}</strong>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+
+                            {isExpanded && incomplete.length === 0 && bidang.total > 0 && (
+                              <tr className="lap-row-iku">
+                                <td></td>
+                                <td colSpan={4} className="text-left" style={{ paddingLeft: '24px', color: '#22c55e', fontSize: '0.82rem' }}>
+                                  <i className="fa-solid fa-check"></i> Semua IKU sudah diisi lengkap!
                                 </td>
                               </tr>
-                            );
-                          })}
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className="htable" id="tbl-laporan-breakdown">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '32px' }}></th>
+                        <th className="text-left">IKU / Indikator</th>
+                        <th style={{ width: '80px' }} className="text-center">Satuan</th>
+                        <th style={{ width: '120px' }} className="text-center">Target Unit</th>
+                        <th style={{ width: '120px' }} className="text-center">Capaian Unit</th>
+                        <th style={{ width: '260px' }} className="text-left">Analisis & Kinerja</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getBreakdownRows().map(bidang => {
+                        const icon = bidang.pct === 100
+                          ? <i className="fa-solid fa-circle-check" style={{ color: '#22c55e' }}></i>
+                          : <i className="fa-solid fa-circle-half-stroke" style={{ color: '#f97316' }}></i>;
 
-                          {isExpanded && incomplete.length === 0 && bidang.total > 0 && (
-                            <tr className="lap-row-iku">
-                              <td></td>
-                              <td colSpan={4} className="text-left" style={{ paddingLeft: '24px', color: '#22c55e', fontSize: '0.82rem' }}>
-                                <i className="fa-solid fa-check"></i> Semua IKU sudah diisi lengkap!
+                        const isExpanded = !!expandedBidangs[bidang.id];
+
+                        return (
+                          <React.Fragment key={bidang.id}>
+                            <tr 
+                              className="lap-row-bidang" 
+                              onClick={() => toggleBidang(bidang.id)}
+                              style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
+                            >
+                              <td className="text-center">{icon}</td>
+                              <td className="text-left" colSpan={4}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                  <strong>{bidang.code} — {bidang.name}</strong>
+                                  <i className={`fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ color: 'var(--muted)', fontSize: '0.75rem' }}></i>
+                                </span>
+                              </td>
+                              <td className="text-left" style={{ color: 'var(--muted)', fontSize: '0.85rem', fontWeight: 600 }}>
+                                Terisi: {bidang.filled}/{bidang.total} ({bidang.pct}%)
                               </td>
                             </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            
+                            {isExpanded && bidang.ikuItems.map(({ node, prog }: any) => {
+                              const targetUnitStr = prog?.target_unit || '';
+                              const targetUnitVal = parseNumericValue(targetUnitStr);
+                              const capUnitStr = prog?.capaian || '';
+                              const capUnitVal = parseNumericValue(capUnitStr);
+                              const satuan = node.satuan || '';
+
+                              let badgeHtml = null;
+
+                              if (targetUnitVal !== null) {
+                                if (capUnitVal !== null) {
+                                  const diff = capUnitVal - targetUnitVal;
+                                  if (diff > 0) {
+                                    badgeHtml = (
+                                      <span style={{ 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        gap: '4px',
+                                        padding: '3px 8px', 
+                                        borderRadius: '99px', 
+                                        background: '#ecfdf5', 
+                                        color: '#059669', 
+                                        border: '1px solid #a7f3d0',
+                                        fontWeight: 600, 
+                                        fontSize: '0.72rem',
+                                        whiteSpace: 'nowrap'
+                                      }}>
+                                        <i className="fa-solid fa-arrow-trend-up"></i> Melampaui Target Unit (+{Number(diff.toFixed(2))}{satuan === '%' ? '%' : ''})
+                                      </span>
+                                    );
+                                  } else if (diff === 0) {
+                                    badgeHtml = (
+                                      <span style={{ 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        gap: '4px',
+                                        padding: '3px 8px', 
+                                        borderRadius: '99px', 
+                                        background: '#eff6ff', 
+                                        color: '#1d4ed8', 
+                                        border: '1px solid #bfdbfe',
+                                        fontWeight: 600, 
+                                        fontSize: '0.72rem',
+                                        whiteSpace: 'nowrap'
+                                      }}>
+                                        <i className="fa-solid fa-circle-check"></i> Mencapai Target Unit
+                                      </span>
+                                    );
+                                  } else {
+                                    badgeHtml = (
+                                      <span style={{ 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        gap: '4px',
+                                        padding: '3px 8px', 
+                                        borderRadius: '99px', 
+                                        background: '#fff7ed', 
+                                        color: '#ea580c', 
+                                        border: '1px solid #ffedd5',
+                                        fontWeight: 600, 
+                                        fontSize: '0.72rem',
+                                        whiteSpace: 'nowrap'
+                                      }}>
+                                        <i className="fa-solid fa-circle-exclamation"></i> Kurang dari Target Unit (Gap: {Number((-diff).toFixed(2))}{satuan === '%' ? '%' : ''})
+                                      </span>
+                                    );
+                                  }
+                                } else {
+                                  badgeHtml = (
+                                    <span style={{ 
+                                      padding: '3px 8px', 
+                                      borderRadius: '99px', 
+                                      background: '#f1f5f9', 
+                                      color: '#64748b', 
+                                      border: '1px solid #e2e8f0',
+                                      fontWeight: 600, 
+                                      fontSize: '0.72rem',
+                                      whiteSpace: 'nowrap'
+                                    }}>
+                                      Belum Dilaporkan
+                                    </span>
+                                  );
+                                }
+                              } else {
+                                // Target Unit is empty/not set
+                                if (capUnitVal !== null) {
+                                  badgeHtml = (
+                                    <span style={{ 
+                                      padding: '3px 8px', 
+                                      borderRadius: '99px', 
+                                      background: '#f8fafc', 
+                                      color: '#0f172a', 
+                                      border: '1px solid #cbd5e1',
+                                      fontWeight: 600, 
+                                      fontSize: '0.72rem',
+                                      whiteSpace: 'nowrap'
+                                    }}>
+                                      Realisasi: {capUnitStr}
+                                    </span>
+                                  );
+                                } else {
+                                  badgeHtml = (
+                                    <span style={{ 
+                                      padding: '3px 8px', 
+                                      borderRadius: '99px', 
+                                      background: '#fee2e2', 
+                                      color: '#b91c1c', 
+                                      border: '1px solid #fecaca',
+                                      fontWeight: 600, 
+                                      fontSize: '0.72rem',
+                                      whiteSpace: 'nowrap'
+                                    }}>
+                                      <i className="fa-solid fa-triangle-exclamation"></i> Target Unit Belum Diisi
+                                    </span>
+                                  );
+                                }
+                              }
+
+                              return (
+                                <tr key={node.id} className="lap-row-iku" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                  <td className="text-center" style={{ verticalAlign: 'middle' }}>
+                                    {capUnitVal !== null ? (
+                                      <i className="fa-solid fa-circle-check" style={{ color: '#22c55e', fontSize: '0.85rem' }}></i>
+                                    ) : (
+                                      <i className="fa-solid fa-circle-minus" style={{ color: '#94a3b8', fontSize: '0.85rem' }}></i>
+                                    )}
+                                  </td>
+                                  <td className="text-left" style={{ paddingLeft: '24px', verticalAlign: 'middle' }}>
+                                    {node.code ? <span style={{ color: 'var(--muted)', marginRight: '6px', fontWeight: 600 }}>{node.code}</span> : ''}
+                                    {node.description}
+                                  </td>
+                                  <td className="text-center" style={{ verticalAlign: 'middle', fontWeight: 500 }}>{node.satuan || '—'}</td>
+                                  <td className="text-center" style={{ verticalAlign: 'middle', fontWeight: 600, color: '#0369a1' }}>{targetUnitStr || '—'}</td>
+                                  <td className="text-center" style={{ verticalAlign: 'middle', fontWeight: 600, color: capUnitVal !== null ? '#1e3a8a' : '#64748b' }}>{capUnitStr || '—'}</td>
+                                  <td className="text-left" style={{ verticalAlign: 'middle', padding: '12px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                      <div>{badgeHtml}</div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+
+                            {isExpanded && bidang.ikuItems.length === 0 && (
+                              <tr className="lap-row-iku">
+                                <td></td>
+                                <td colSpan={6} className="text-left" style={{ paddingLeft: '24px', color: 'var(--muted)', fontSize: '0.82rem' }}>
+                                  Belum ada IKU untuk bidang ini.
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}

@@ -446,7 +446,7 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                   flexDirection: 'column',
                   gap: '4px'
                 }}>
-                  {[2026, 2027].map((yr) => (
+                  {Array.from({ length: 7 }, (_, i) => 2024 + i).map((yr) => (
                     <div
                       key={yr}
                       onClick={() => {
