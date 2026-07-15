@@ -1,6 +1,5 @@
-/* ═══════════════════════════════════════════════
-   SIPP — Utility Functions
-   ═══════════════════════════════════════════════ */
+import Swal from 'sweetalert2';
+
 
 export function escapeHTML(str: string | null | undefined): string {
   if (!str) return '';
@@ -96,4 +95,57 @@ export function getTwValue(fieldVal: string | null | undefined, twKey: string): 
     if (twKey === 'tw1') return fieldVal;
   }
   return '';
+}
+
+export function dataURLtoBlob(dataurl: string): Blob {
+  const arr = dataurl.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || '';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
+}
+
+export function handlePreviewDukung(dukungVal: string): void {
+  if (!dukungVal) return;
+
+  if (dukungVal.startsWith('data:')) {
+    try {
+      const blob = dataURLtoBlob(dukungVal);
+      const url = URL.createObjectURL(blob);
+      
+      const mime = blob.type;
+      const isWord = mime.includes('word') || mime.includes('msword') || mime.includes('officedocument.wordprocessingml');
+      const isExcel = mime.includes('excel') || mime.includes('spreadsheetml') || mime.includes('ms-excel');
+      
+      if (isWord || isExcel) {
+        const a = document.createElement('a');
+        a.href = url;
+        let filename = 'data_dukung';
+        if (isWord) filename += '.docx';
+        else if (isExcel) filename += '.xlsx';
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        window.open(url, '_blank');
+      }
+
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (e) {
+      console.error('Error previewing data:', e);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Membuka Berkas',
+        text: 'Format data dukung tidak dapat dibaca.',
+        confirmButtonColor: '#0072ff'
+      });
+    }
+  } else {
+    window.open(dukungVal, '_blank');
+  }
 }

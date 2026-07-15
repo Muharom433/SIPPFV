@@ -27,7 +27,7 @@ import { Laporan } from './pages/Laporan';
 
 import type { SipItem, Purchase, RenstraProgress } from './types';
 import * as XLSX from 'xlsx';
-import { buildTree, calculateAggregateAmounts } from './utils/helpers';
+import { buildTree, calculateAggregateAmounts, dataURLtoBlob, handlePreviewDukung } from './utils/helpers';
 
 export function SippApp() {
   const { user, login } = useAuth();
@@ -144,7 +144,18 @@ export function SippApp() {
       if (tab === 'rka-data' || tab === 'rka-rpd') {
         const data = await getItems('keuangan_rka');
         setItems(data);
-      } else if (tab === 'renstra-tanggung' || tab === 'renstra-capaian') {
+      } else if (tab === 'renstra-tanggung') {
+        // Fetch semua triwulan sekaligus untuk menampilkan 4 kolom Target Unit
+        const [itemsData, progressData] = await Promise.all([
+          getItems('renstra'),
+          getRenstraProgress(
+            user.role === 'admin' ? filterProdi : (user.prodi_code || '')
+            // Tanpa filter triwulan → ambil semua triwulan (1,2,3,4)
+          )
+        ]);
+        setItems(itemsData);
+        setRenstraProgress(progressData);
+      } else if (tab === 'renstra-capaian') {
         const [itemsData, progressData] = await Promise.all([
           getItems('renstra'),
           getRenstraProgress(
@@ -538,6 +549,39 @@ export function SippApp() {
     setMcrStrategy(prog?.strategy || '');
     setMcrDukung(prog?.supporting_data_link || '');
     setActiveModal('capaian-renstra');
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const maxSizeBytes = 100 * 1024 * 1024; // 100MB limit
+    if (file.size > maxSizeBytes) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Ukuran Berkas Terlalu Besar',
+        text: 'Ukuran berkas maksimal adalah 100 MB.',
+        confirmButtonColor: '#0072ff'
+      });
+      e.target.value = ''; // Reset input
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Data = event.target?.result as string;
+      setMcrDukung(base64Data);
+    };
+    reader.onerror = (error) => {
+      console.error('File reading error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Membaca Berkas',
+        text: 'Terjadi kesalahan saat membaca berkas.',
+        confirmButtonColor: '#0072ff'
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSaveCapaianRenstra = async () => {
@@ -1612,14 +1656,105 @@ export function SippApp() {
                   placeholder="Tulis rencana penyelesaian..."
                 />
               </div>
-              <div className="fg">
-                <label>Data Dukung (Google Drive Link) <span className="req">*</span></label>
-                <input 
-                  type="url"
-                  value={mcrDukung}
-                  onChange={(e) => setMcrDukung(e.target.value)}
-                  placeholder="https://drive.google.com/..."
-                />
+              <div className="fg" style={{ marginBottom: '15px' }}>
+                <label>Data Dukung <span className="req">*</span></label>
+                {mcrDukung ? (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    padding: '12px',
+                    border: '1px solid var(--border)',
+                    borderRadius: '10px',
+                    background: '#f8fafc'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {mcrDukung.startsWith('data:') ? (
+                          <>
+                            {mcrDukung.startsWith('data:image/') ? (
+                              <div style={{ width: '40px', height: '40px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #cbd5e1', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <img src={mcrDukung} alt="Preview" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'cover' }} />
+                              </div>
+                            ) : (
+                              <div style={{ width: '40px', height: '40px', borderRadius: '6px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', color: '#64748b' }}>
+                                <i className={
+                                  mcrDukung.startsWith('data:application/pdf') ? "fa-solid fa-file-pdf text-danger" : 
+                                  mcrDukung.startsWith('data:application/vnd.openxmlformats-officedocument.spreadsheetml') ? "fa-solid fa-file-excel text-success" :
+                                  mcrDukung.startsWith('data:application/vnd.ms-excel') ? "fa-solid fa-file-excel text-success" :
+                                  "fa-solid fa-file-word text-primary"
+                                }></i>
+                              </div>
+                            )}
+                            <div>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>Berkas Data Dukung</div>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
+                                {mcrDukung.split(';')[0].split(':')[1] || 'Format Dokumen'}
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ width: '40px', height: '40px', borderRadius: '6px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', color: '#1d4ed8' }}>
+                              <i className="fa-brands fa-google-drive"></i>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text)' }}>Link Google Drive</div>
+                              <div style={{ fontSize: '0.72rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
+                                {mcrDukung}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button 
+                          type="button"
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => {
+                            if (mcrDukung.startsWith('data:')) {
+                              const blob = dataURLtoBlob(mcrDukung);
+                              const url = URL.createObjectURL(blob);
+                              window.open(url, '_blank');
+                            } else {
+                              window.open(mcrDukung, '_blank');
+                            }
+                          }}
+                          style={{ padding: '4px 8px', fontSize: '0.72rem' }}
+                        >
+                          <i className="fa-solid fa-eye"></i> Lihat
+                        </button>
+                        <button 
+                          type="button" 
+                          className="btn btn-sm btn-danger"
+                          onClick={() => setMcrDukung('')}
+                          style={{ padding: '4px 8px', fontSize: '0.72rem', background: '#ef4444', borderColor: '#ef4444', color: '#fff' }}
+                        >
+                          <i className="fa-solid fa-trash"></i> Hapus
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <input 
+                      type="file"
+                      accept=".doc,.docx,.xls,.xlsx,.pdf,image/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf"
+                      onChange={handleFileChange}
+                      style={{
+                        width: '100%',
+                        padding: '8px 12px',
+                        border: '1px dashed var(--border)',
+                        borderRadius: '10px',
+                        background: '#f8fafc',
+                        cursor: 'pointer'
+                      }}
+                    />
+                    <div style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: '6px' }}>
+                      Menerima dokumen Word, Excel, PDF, dan Gambar. Ukuran berkas maksimal 100 MB.
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="modal-ftr">
@@ -1805,8 +1940,15 @@ export function SippApp() {
                           <td style={{ textAlign: 'right', fontWeight: 500 }}>{child.amount ? child.amount.toLocaleString('id-ID') : '0'}</td>
                           <td style={{ textAlign: 'center' }}>
                             {child.supporting_data_link ? (
-                              <a href={child.supporting_data_link} target="_blank" rel="noopener noreferrer" className="dlbadge has-link">
-                                <i className="fa-brands fa-google-drive"></i> Open
+                              <a 
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handlePreviewDukung(child.supporting_data_link!);
+                                }}
+                                className="dlbadge has-link"
+                              >
+                                <i className={child.supporting_data_link.startsWith('data:') ? "fa-solid fa-file" : "fa-brands fa-google-drive"}></i> Open
                               </a>
                             ) : (
                               'Kosong'

@@ -33,7 +33,6 @@ export function RenstraTanggungJawab({
   const { user } = useAuth();
   const {
     filterYear,
-    filterTriwulan,
     filterProdi,
     collapsed,
     toggleCollapse,
@@ -120,7 +119,7 @@ export function RenstraTanggungJawab({
     }
   };
 
-  const handleSaveTargetUnit = async (id: number, val: string) => {
+  const handleSaveTargetUnit = async (id: number, val: string, triwulanNum: number) => {
     if (!activeProdi) {
       Swal.fire({
         icon: 'warning',
@@ -132,16 +131,11 @@ export function RenstraTanggungJawab({
     }
 
     try {
-      const activeTwNum = filterTriwulan === 'Triwulan 1' ? 1 
-        : filterTriwulan === 'Triwulan 2' ? 2 
-        : filterTriwulan === 'Triwulan 3' ? 3 
-        : 4;
-
-      const existingProg = progress.find(p => p.item_id === id);
+      const existingProg = progress.find(p => p.item_id === id && p.triwulan === triwulanNum);
       await upsertRenstraProgress({
         item_id: id,
         prodi_code: activeProdi,
-        triwulan: activeTwNum,
+        triwulan: triwulanNum,
         target_unit: val,
         capaian: existingProg ? existingProg.capaian : null,
         capaian_pct: existingProg ? existingProg.capaian_pct : null,
@@ -154,7 +148,7 @@ export function RenstraTanggungJawab({
       onRefresh();
       Toast.fire({
         icon: 'success',
-        title: 'Target Unit berhasil disimpan'
+        title: `Target Unit TW${triwulanNum} berhasil disimpan`
       });
     } catch (err: any) {
       Swal.fire({
@@ -236,7 +230,25 @@ export function RenstraTanggungJawab({
 
     // Render target unit input or text
     let targetFakultasHtml: React.ReactNode = '';
-    let targetUnitHtml: React.ReactNode = '';
+
+    // Render 4 kolom Target Unit per triwulan
+    const renderTargetUnitTw = (twNum: number): React.ReactNode => {
+      if (node.level !== 4) return '';
+      const progTw = progress.find(p => p.item_id === node.id && p.triwulan === twNum);
+      const progTargetUnit = progTw ? (progTw.target_unit || '') : '';
+      if (activeProdi) {
+        return (
+          <input
+            key={`${filterYear}_tw${twNum}_${activeProdi}_${node.id}`}
+            type="text"
+            className="table-input"
+            defaultValue={progTargetUnit}
+            onBlur={(e) => handleSaveTargetUnit(node.id, e.target.value, twNum)}
+          />
+        );
+      }
+      return progTargetUnit;
+    };
 
     if (node.level === 4) {
       if (isAdmin) {
@@ -252,24 +264,8 @@ export function RenstraTanggungJawab({
       } else {
         targetFakultasHtml = node.target_univ || '';
       }
-
-      const progTargetUnit = prog ? (prog.target_unit || '') : '';
-      if (activeProdi) {
-        targetUnitHtml = (
-          <input 
-            key={`${filterYear}_${filterTriwulan}_${activeProdi}_${node.id}`}
-            type="text" 
-            className="table-input" 
-            defaultValue={progTargetUnit} 
-            onBlur={(e) => handleSaveTargetUnit(node.id, e.target.value)}
-          />
-        );
-      } else {
-        targetUnitHtml = progTargetUnit;
-      }
     } else {
       targetFakultasHtml = node.target_univ || '';
-      targetUnitHtml = '';
     }
 
     const progAmount = prog ? prog.amount : null;
@@ -297,7 +293,10 @@ export function RenstraTanggungJawab({
         <td className="text-left">{node.code || ''}</td>
         <td className="text-center">{node.satuan || ''}</td>
         <td className="text-center">{targetFakultasHtml}</td>
-        <td className="text-center">{targetUnitHtml}</td>
+        <td className="text-center">{renderTargetUnitTw(1)}</td>
+        <td className="text-center">{renderTargetUnitTw(2)}</td>
+        <td className="text-center">{renderTargetUnitTw(3)}</td>
+        <td className="text-center">{renderTargetUnitTw(4)}</td>
         <td className="text-right" style={{ fontWeight: 500 }}>{anggaranText}</td>
         <td className="text-center">
           {node.level === 4 && (
@@ -365,7 +364,10 @@ export function RenstraTanggungJawab({
               <th style={{ width: '80px' }} className="text-left">Kode</th>
               <th style={{ width: '80px' }} className="text-center">Satuan</th>
               <th style={{ width: '120px' }} className="text-center">Target Fakultas</th>
-              <th style={{ width: '120px' }} className="text-center">Target Unit</th>
+              <th style={{ width: '110px' }} className="text-center">Target Unit TW 1</th>
+              <th style={{ width: '110px' }} className="text-center">Target Unit TW 2</th>
+              <th style={{ width: '110px' }} className="text-center">Target Unit TW 3</th>
+              <th style={{ width: '110px' }} className="text-center">Target Unit TW 4</th>
               <th style={{ width: '140px' }} className="text-right">Jumlah Anggaran</th>
               <th style={{ width: '80px' }} className="text-center">Kegiatan</th>
               {isAdmin && <th style={{ width: '100px' }} className="admin-only text-center">Aksi</th>}

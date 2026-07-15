@@ -27,7 +27,7 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
   const isAdmin = user?.role === 'admin';
 
   const showFilter = ['renstra-tanggung', 'renstra-capaian'].includes(tab);
-  const showBulan = ['renstra-tanggung', 'renstra-capaian'].includes(tab);
+  const showBulan = tab === 'renstra-capaian';
   const isRenstra = tab === 'renstra-tanggung' || tab === 'renstra-capaian';
 
   let bannerTitle = '';

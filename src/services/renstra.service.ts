@@ -1,11 +1,14 @@
 import { supabase } from '../lib/supabase';
 import type { RenstraProgress } from '../types';
 
-export async function getRenstraProgress(prodiCode: string, triwulan?: number, year?: number): Promise<RenstraProgress[]> {
+export async function getRenstraProgress(prodiCode?: string | null, triwulan?: number, year?: number): Promise<RenstraProgress[]> {
   let query = supabase
     .from('renstra_progress')
-    .select('*')
-    .eq('prodi_code', prodiCode);
+    .select('*');
+
+  if (prodiCode) {
+    query = query.eq('prodi_code', prodiCode);
+  }
 
   if (triwulan) {
     query = query.eq('triwulan', triwulan);

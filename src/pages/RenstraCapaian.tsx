@@ -5,7 +5,8 @@ import Swal from 'sweetalert2';
 import { 
   buildTree, 
   isAncestorCollapsed, 
-  levelClass 
+  levelClass,
+  handlePreviewDukung
 } from '../utils/helpers';
 import type { SipItem, TreeNode, RenstraProgress } from '../types';
 
@@ -156,8 +157,15 @@ export function RenstraCapaian({
         <td className="text-center">
           {node.level === 4 && (
             dukungVal ? (
-              <a href={dukungVal} target="_blank" rel="noopener noreferrer" className="dlbadge has-link">
-                <i className="fa-brands fa-google-drive"></i> Open
+              <a 
+                href="#" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePreviewDukung(dukungVal);
+                }} 
+                className="dlbadge has-link"
+              >
+                <i className={dukungVal.startsWith('data:') ? "fa-solid fa-file" : "fa-brands fa-google-drive"}></i> Open
               </a>
             ) : (
               <button 

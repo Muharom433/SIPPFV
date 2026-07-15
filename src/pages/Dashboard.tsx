@@ -67,6 +67,8 @@ export function Dashboard() {
   };
 
   const isAdmin = user?.role === 'admin';
+  // Fakultas mode: admin dengan selectedProdi kosong
+  const isFakultasMode = isAdmin && !selectedProdi;
 
   // Set default selected prodi on mount or when user context changes
   useEffect(() => {
@@ -75,9 +77,12 @@ export function Dashboard() {
     }
   }, [user, isAdmin]);
 
-  // Load report data automatically for standard user
+  // Auto-load: untuk user biasa (selectedProdi terisi) DAN untuk admin mode Fakultas
   useEffect(() => {
-    if (!isAdmin && selectedProdi) {
+    if (isAdmin) {
+      // Admin: auto-load (Fakultas atau Prodi tertentu)
+      handleTampilkanLaporan();
+    } else if (selectedProdi) {
       handleTampilkanLaporan();
     }
   }, [selectedProdi, isAdmin, selectedYear]);
@@ -90,7 +95,9 @@ export function Dashboard() {
 
   const handleTampilkanLaporan = async () => {
     const prodiCode = isAdmin ? selectedProdi : user?.prodi_code;
-    if (!prodiCode) {
+    // Untuk admin mode Fakultas (prodiCode kosong) → tetap lanjut fetch semua prodi
+    // Untuk user biasa tanpa prodi → error
+    if (!isAdmin && !prodiCode) {
       Swal.fire({
         icon: 'warning',
         title: 'Pilih Program Studi',
@@ -104,7 +111,11 @@ export function Dashboard() {
     try {
       const [items, progressData] = await Promise.all([
         getItems('renstra'),
-        getRenstraProgress(prodiCode, undefined, selectedYear)
+        getRenstraProgress(
+          prodiCode || null,  // null = semua prodi (Fakultas mode)
+          undefined,
+          selectedYear
+        )
       ]);
 
       const ikuItems = items.filter(it => it.level === 4);
@@ -121,63 +132,151 @@ export function Dashboard() {
         return;
       }
 
+      // ── MODE FAKULTAS (agregasi rata-rata seluruh prodi) ──
+      if (isAdmin && !prodiCode) {
+        const activeProdiCodes = prodiLinks.map(p => p.prodi_code);
+        const prodiCount = activeProdiCodes.length;
 
-      const isComplete = (itemId: number, tw: number) => {
-        const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
-        if (!p) return false;
-        return !!(p.capaian?.trim() && 
-                  p.progress?.trim() && 
-                  p.issues?.trim() && 
-                  p.strategy?.trim() && 
-                  p.supporting_data_link?.trim());
-      };
+        if (prodiCount === 0) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Belum Ada Prodi',
+            text: 'Belum ada data Program Studi yang terdaftar.',
+            confirmButtonColor: '#0072ff'
+          });
+          setLoading(false);
+          return;
+        }
 
-      const countDataDukung = (itemId: number, tw: number) => {
-        const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
-        return (p && p.supporting_data_link?.trim()) ? 1 : 0;
-      };
-
-      const twStats: Record<number, { completed: number; dataDukung: number; pct: number }> = {
-        1: { completed: 0, dataDukung: 0, pct: 0 },
-        2: { completed: 0, dataDukung: 0, pct: 0 },
-        3: { completed: 0, dataDukung: 0, pct: 0 },
-        4: { completed: 0, dataDukung: 0, pct: 0 }
-      };
-
-      let totalCompletedAllTws = 0;
-
-      for (let tw = 1; tw <= 4; tw++) {
-        let completedCount = 0;
-        let dataDukungCount = 0;
-
-        ikuItems.forEach(iku => {
-          if (isComplete(iku.id, tw)) completedCount++;
-          dataDukungCount += countDataDukung(iku.id, tw);
-        });
-
-        const pct = Math.round((completedCount / totalIkuCount) * 100);
-        twStats[tw] = {
-          completed: completedCount,
-          dataDukung: dataDukungCount,
-          pct: pct
+        const isCompleteForProdi = (itemId: number, tw: number, pCode: string) => {
+          const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw && x.prodi_code === pCode);
+          if (!p) return false;
+          return !!(p.capaian?.trim() && 
+                    p.progress?.trim() && 
+                    p.issues?.trim() && 
+                    p.strategy?.trim() && 
+                    p.supporting_data_link?.trim());
         };
 
-        totalCompletedAllTws += completedCount;
+        const countDataDukungForProdi = (itemId: number, tw: number, pCode: string) => {
+          const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw && x.prodi_code === pCode);
+          return (p && p.supporting_data_link?.trim()) ? 1 : 0;
+        };
+
+        const twStats: Record<number, { completed: number; dataDukung: number; pct: number }> = {
+          1: { completed: 0, dataDukung: 0, pct: 0 },
+          2: { completed: 0, dataDukung: 0, pct: 0 },
+          3: { completed: 0, dataDukung: 0, pct: 0 },
+          4: { completed: 0, dataDukung: 0, pct: 0 }
+        };
+
+        let totalCompletedAllTws = 0;
+        let totalDataDukungAllTws = 0;
+
+        for (let tw = 1; tw <= 4; tw++) {
+          // Hitung rata-rata pct dari seluruh prodi pada TW ini
+          let sumProdiPct = 0;
+          let totalCompletedTw = 0;
+          let totalDataDukungTw = 0;
+
+          activeProdiCodes.forEach(pCode => {
+            let completedCount = 0;
+            let dataDukungCount = 0;
+            ikuItems.forEach(iku => {
+              if (isCompleteForProdi(iku.id, tw, pCode)) completedCount++;
+              dataDukungCount += countDataDukungForProdi(iku.id, tw, pCode);
+            });
+            const prodiPct = (completedCount / totalIkuCount) * 100;
+            sumProdiPct += prodiPct;
+            totalCompletedTw += completedCount;
+            totalDataDukungTw += dataDukungCount;
+          });
+
+          const avgPct = Math.round(sumProdiPct / prodiCount);
+          twStats[tw] = {
+            completed: totalCompletedTw,
+            dataDukung: totalDataDukungTw,
+            pct: avgPct
+          };
+          totalCompletedAllTws += totalCompletedTw;
+          totalDataDukungAllTws += totalDataDukungTw;
+        }
+
+        const overallPct = Math.round(
+          (twStats[1].pct + twStats[2].pct + twStats[3].pct + twStats[4].pct) / 4
+        );
+
+        setReportData({
+          items,
+          progress: progressData,
+          totalIku: totalIkuCount,
+          totalCompleted: totalCompletedAllTws,
+          totalIncomplete: (totalIkuCount * 4 * prodiCount) - totalCompletedAllTws,
+          overallPct,
+          twStats
+        });
+
+        setActiveTwBreakdown(null);
+
+      } else {
+        // ── MODE PRODI (logika asli) ──
+        const isComplete = (itemId: number, tw: number) => {
+          const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
+          if (!p) return false;
+          return !!(p.capaian?.trim() && 
+                    p.progress?.trim() && 
+                    p.issues?.trim() && 
+                    p.strategy?.trim() && 
+                    p.supporting_data_link?.trim());
+        };
+
+        const countDataDukung = (itemId: number, tw: number) => {
+          const p = progressData.find(x => x.item_id === itemId && x.triwulan === tw);
+          return (p && p.supporting_data_link?.trim()) ? 1 : 0;
+        };
+
+        const twStats: Record<number, { completed: number; dataDukung: number; pct: number }> = {
+          1: { completed: 0, dataDukung: 0, pct: 0 },
+          2: { completed: 0, dataDukung: 0, pct: 0 },
+          3: { completed: 0, dataDukung: 0, pct: 0 },
+          4: { completed: 0, dataDukung: 0, pct: 0 }
+        };
+
+        let totalCompletedAllTws = 0;
+
+        for (let tw = 1; tw <= 4; tw++) {
+          let completedCount = 0;
+          let dataDukungCount = 0;
+
+          ikuItems.forEach(iku => {
+            if (isComplete(iku.id, tw)) completedCount++;
+            dataDukungCount += countDataDukung(iku.id, tw);
+          });
+
+          const pct = Math.round((completedCount / totalIkuCount) * 100);
+          twStats[tw] = {
+            completed: completedCount,
+            dataDukung: dataDukungCount,
+            pct: pct
+          };
+
+          totalCompletedAllTws += completedCount;
+        }
+
+        const overallPct = Math.round((totalCompletedAllTws / (totalIkuCount * 4)) * 100);
+
+        setReportData({
+          items,
+          progress: progressData,
+          totalIku: totalIkuCount,
+          totalCompleted: totalCompletedAllTws,
+          totalIncomplete: (totalIkuCount * 4) - totalCompletedAllTws,
+          overallPct,
+          twStats
+        });
+
+        setActiveTwBreakdown(null);
       }
-
-      const overallPct = Math.round((totalCompletedAllTws / (totalIkuCount * 4)) * 100);
-
-      setReportData({
-        items,
-        progress: progressData,
-        totalIku: totalIkuCount,
-        totalCompleted: totalCompletedAllTws,
-        totalIncomplete: (totalIkuCount * 4) - totalCompletedAllTws,
-        overallPct,
-        twStats
-      });
-
-      setActiveTwBreakdown(null);
     } catch (err: any) {
       Swal.fire({
         icon: 'error',
@@ -186,7 +285,6 @@ export function Dashboard() {
         confirmButtonColor: '#0072ff'
       });
     } finally {
-
       setLoading(false);
     }
   };
@@ -322,6 +420,81 @@ export function Dashboard() {
     });
   };
 
+  // Handle triwulan breakdown rendering for FAKULTAS mode
+  const getBreakdownRowsFakultas = () => {
+    if (!reportData || activeTwBreakdown === null) return [];
+
+    const progressData = reportData.progress.filter(x => x.triwulan === activeTwBreakdown);
+    const { map } = buildTree(reportData.items);
+
+    const bidangNodes = Object.values(map).filter(node => node.level === 2);
+    bidangNodes.sort((a, b) => {
+      const aNum = parseInt(a.description) || a.id;
+      const bNum = parseInt(b.description) || b.id;
+      return aNum - bNum;
+    });
+
+    const activeProdiCodes = prodiLinks.map(p => p.prodi_code);
+
+    // Collect all IKU items (level 4) per bidang
+    const getIkuIds = (node: TreeNode): number[] => {
+      if (node.level === 4) return [node.id];
+      let ids: number[] = [];
+      (node.children || []).forEach(child => {
+        ids = ids.concat(getIkuIds(child));
+      });
+      return ids;
+    };
+
+    const isIKUCompleteForProdi = (itemId: number, pCode: string) => {
+      const p = progressData.find(x => x.item_id === itemId && x.prodi_code === pCode);
+      if (!p) return false;
+      return !!(p.capaian?.trim() && p.progress?.trim() &&
+                p.issues?.trim() && p.strategy?.trim() &&
+                p.supporting_data_link?.trim());
+    };
+
+    return bidangNodes.map((bidang, i) => {
+      const ikuIds = getIkuIds(bidang);
+      const totalIkuInBidang = ikuIds.length;
+
+      // Per-prodi stats untuk bidang ini
+      const prodiStats: { prodiCode: string; prodiName: string; filled: number; total: number; pct: number }[] = [];
+      let sumProdiPct = 0;
+
+      activeProdiCodes.forEach(pCode => {
+        let filledCount = 0;
+        ikuIds.forEach(ikuId => {
+          if (isIKUCompleteForProdi(ikuId, pCode)) filledCount++;
+        });
+        const prodiPct = totalIkuInBidang > 0 ? Math.round((filledCount / totalIkuInBidang) * 100) : 0;
+        sumProdiPct += prodiPct;
+        const prodiLink = prodiLinks.find(p => p.prodi_code === pCode);
+        prodiStats.push({
+          prodiCode: pCode,
+          prodiName: prodiLink ? prodiLink.prodi_name : pCode,
+          filled: filledCount,
+          total: totalIkuInBidang,
+          pct: prodiPct
+        });
+      });
+
+      const avgPct = activeProdiCodes.length > 0 ? Math.round(sumProdiPct / activeProdiCodes.length) : 0;
+      // Filter hanya prodi yang belum 100%
+      const incompleteProdi = prodiStats.filter(ps => ps.pct < 100);
+
+      return {
+        id: bidang.id,
+        name: bidang.description,
+        code: bidang.code || `B${i + 1}`,
+        total: totalIkuInBidang,
+        pct: avgPct,
+        incompleteProdi,
+        allComplete: incompleteProdi.length === 0
+      };
+    });
+  };
+
   const handleLihatRincian = (tw: number, tab: 'rincian' | 'analisis' = 'rincian') => {
     setExpandedBidangs({});
     setActiveTwBreakdown(tw);
@@ -389,7 +562,7 @@ export function Dashboard() {
             fontWeight: 600, 
             color: '#64ffda' 
           }}>
-            {isAdmin ? 'Dashboard Kinerja' : `Dashboard Kinerja • ${user?.prodi_code || ''}`} &bull; Periode {selectedYear}
+            {isFakultasMode ? 'Dashboard Kinerja Fakultas' : (isAdmin ? `Dashboard Kinerja • ${selectedProdi}` : `Dashboard Kinerja • ${user?.prodi_code || ''}`)} &bull; Periode {selectedYear}
           </span>
           <h2 style={{ fontSize: '1.9rem', margin: '16px 0 10px', fontWeight: 700, color: '#fff', fontFamily: 'Outfit' }}>
             Pelaporan Capaian Kinerja Utama
@@ -502,7 +675,7 @@ export function Dashboard() {
                   </svg>
                 )}
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
-                  {selectedProdi ? (isMobile ? selectedProdi : `${selectedProdi} — ${prodiLinks.find(p => p.prodi_code === selectedProdi)?.prodi_name || ''}`) : '— Pilih Prodi —'}
+                  {selectedProdi ? (isMobile ? selectedProdi : `${selectedProdi} — ${prodiLinks.find(p => p.prodi_code === selectedProdi)?.prodi_name || ''}`) : '🏫 Fakultas (Semua Prodi)'}
                 </span>
                 <i className={`fa-solid fa-chevron-down`} style={{ fontSize: '0.8rem', color: 'var(--muted)', transition: 'transform 0.2s', transform: isDropdownOpen ? 'rotate(180deg)' : 'none' }}></i>
               </button>
@@ -587,7 +760,7 @@ export function Dashboard() {
                         if (selectedProdi !== '') e.currentTarget.style.background = 'transparent';
                       }}
                     >
-                      — Pilih Prodi —
+                      🏫 Fakultas (Semua Prodi)
                     </div>
 
                     {prodiLinks.filter(p => 
@@ -681,8 +854,8 @@ export function Dashboard() {
         </div>
       )}
 
-      {/* 4. EMPTY STATE */}
-      {!reportData && !loading && (
+      {/* 4. EMPTY STATE — hanya tampil jika bukan admin (admin auto-load Fakultas) */}
+      {!reportData && !loading && !isAdmin && (
         <div id="lap-empty-state" style={{
           display: 'flex',
           flexDirection: 'column',
@@ -698,9 +871,9 @@ export function Dashboard() {
           border: '1px solid rgba(226, 232, 240, 0.8)'
         }}>
           <i className="fa-solid fa-filter" style={{ fontSize: '3rem', marginBottom: '16px', opacity: 0.25, color: 'var(--blue)' }}></i>
-          <h3 style={{ marginBottom: '8px', color: 'var(--text)', opacity: 0.75, fontSize: '1.25rem', fontWeight: 600 }}>Pilih Program Studi</h3>
+          <h3 style={{ marginBottom: '8px', color: 'var(--text)', opacity: 0.75, fontSize: '1.25rem', fontWeight: 600 }}>Memuat Data...</h3>
           <p style={{ maxWidth: '420px', lineHeight: 1.65, fontSize: '0.9rem', color: 'var(--muted)' }}>
-            Silakan pilih Program Studi di atas, lalu klik ikon pencarian untuk memuat dashboard kelengkapan laporan Renstra.
+            Menunggu data program studi untuk memuat dashboard.
           </p>
         </div>
       )}
@@ -828,8 +1001,10 @@ export function Dashboard() {
                       </span>
                     </div>
                     <div style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text)' }}>
-                      DATA DUKUNG TERKUMPUL
-                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--blue)', marginTop: '2px' }}>{stats.dataDukung} / {reportData.totalIku} Indikator</div>
+                      {isFakultasMode ? 'RATA-RATA KELENGKAPAN PRODI' : 'DATA DUKUNG TERKUMPUL'}
+                      <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--blue)', marginTop: '2px' }}>
+                        {isFakultasMode ? `${stats.pct}% dari ${prodiLinks.length} Prodi` : `${stats.dataDukung} / ${reportData.totalIku} Indikator`}
+                      </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', minWidth: '140px' }}>
@@ -851,13 +1026,15 @@ export function Dashboard() {
                     >
                       LIHAT RINCIAN <i className="fa-solid fa-arrow-right" style={{ marginLeft: '4px', fontSize: '0.65rem' }}></i>
                     </button>
-                    <button 
-                      className="btn btn-secondary btn-sm" 
-                      onClick={() => handleLihatRincian(tw, 'analisis')}
-                      style={{ width: '100%', justifyContent: 'center', fontWeight: 600, fontSize: '0.72rem', padding: '6px 10px', borderRadius: '6px', background: 'linear-gradient(135deg, #0284c7, #0ea5e9)', color: '#fff', border: 'none', whiteSpace: 'nowrap' }}
-                    >
-                      ANALISIS KINERJA <i className="fa-solid fa-chart-line" style={{ marginLeft: '4px', fontSize: '0.65rem' }}></i>
-                    </button>
+                    {!isFakultasMode && (
+                      <button 
+                        className="btn btn-secondary btn-sm" 
+                        onClick={() => handleLihatRincian(tw, 'analisis')}
+                        style={{ width: '100%', justifyContent: 'center', fontWeight: 600, fontSize: '0.72rem', padding: '6px 10px', borderRadius: '6px', background: 'linear-gradient(135deg, #0284c7, #0ea5e9)', color: '#fff', border: 'none', whiteSpace: 'nowrap' }}
+                      >
+                        ANALISIS KINERJA <i className="fa-solid fa-chart-line" style={{ marginLeft: '4px', fontSize: '0.65rem' }}></i>
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -872,14 +1049,18 @@ export function Dashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div>
                   <h3 style={{ fontSize: '1.1rem', color: 'var(--text)', fontWeight: 700 }}>
-                    {activeTab === 'rincian' 
-                      ? `Rincian Ketidaklengkapan Triwulan ${activeTwBreakdown}` 
-                      : `Analisis Kinerja Target Triwulan ${activeTwBreakdown}`}
+                    {isFakultasMode 
+                      ? `Rincian Ketidaklengkapan Fakultas — Triwulan ${activeTwBreakdown}`
+                      : (activeTab === 'rincian' 
+                        ? `Rincian Ketidaklengkapan Triwulan ${activeTwBreakdown}` 
+                        : `Analisis Kinerja Target Triwulan ${activeTwBreakdown}`)}
                   </h3>
                   <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: '2px' }}>
-                    {activeTab === 'rincian'
-                      ? 'Daftar IKU yang belum diisi lengkap beserta field yang masih kosong'
-                      : 'Komparasi realisasi capaian unit terhadap target fakultas dan target triwulan'}
+                    {isFakultasMode
+                      ? 'Daftar Bidang beserta Program Studi yang belum mencapai 100% kelengkapan'
+                      : (activeTab === 'rincian'
+                        ? 'Daftar IKU yang belum diisi lengkap beserta field yang masih kosong'
+                        : 'Komparasi realisasi capaian unit terhadap target fakultas dan target triwulan')}
                   </p>
                 </div>
                 <button 
@@ -891,47 +1072,49 @@ export function Dashboard() {
                 </button>
               </div>
 
-              {/* Tab Navigation */}
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                <button
-                  onClick={() => setActiveTab('rincian')}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    border: '1px solid ' + (activeTab === 'rincian' ? '#0f172a' : '#cbd5e1'),
-                    background: activeTab === 'rincian' ? '#0f172a' : 'var(--white)',
-                    color: activeTab === 'rincian' ? '#fff' : 'var(--text)',
-                    fontWeight: 600,
-                    fontSize: '0.78rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <i className="fa-solid fa-file-circle-exclamation"></i> Rincian Ketidaklengkapan
-                </button>
-                <button
-                  onClick={() => setActiveTab('analisis')}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    border: activeTab === 'analisis' ? 'none' : '1px solid #cbd5e1',
-                    background: activeTab === 'analisis' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : 'var(--white)',
-                    color: activeTab === 'analisis' ? '#fff' : 'var(--text)',
-                    fontWeight: 600,
-                    fontSize: '0.78rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}
-                >
-                  <i className="fa-solid fa-chart-line"></i> Analisis Kinerja Target
-                </button>
-              </div>
+              {/* Tab Navigation — hanya tampil di mode Prodi */}
+              {!isFakultasMode && (
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+                  <button
+                    onClick={() => setActiveTab('rincian')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: '1px solid ' + (activeTab === 'rincian' ? '#0f172a' : '#cbd5e1'),
+                      background: activeTab === 'rincian' ? '#0f172a' : 'var(--white)',
+                      color: activeTab === 'rincian' ? '#fff' : 'var(--text)',
+                      fontWeight: 600,
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <i className="fa-solid fa-file-circle-exclamation"></i> Rincian Ketidaklengkapan
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('analisis')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      border: activeTab === 'analisis' ? 'none' : '1px solid #cbd5e1',
+                      background: activeTab === 'analisis' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : 'var(--white)',
+                      color: activeTab === 'analisis' ? '#fff' : 'var(--text)',
+                      fontWeight: 600,
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <i className="fa-solid fa-chart-line"></i> Analisis Kinerja Target
+                  </button>
+                </div>
+              )}
 
               <div className="tbl-wrap" style={{
                 background: 'var(--white)',
@@ -941,7 +1124,93 @@ export function Dashboard() {
                 border: '1px solid rgba(226, 232, 240, 0.8)',
                 marginBottom: '32px'
               }}>
-                {activeTab === 'rincian' ? (
+                {/* ====== MODE FAKULTAS: Breakdown per Bidang → Prodi ====== */}
+                {isFakultasMode ? (
+                  <table className="htable" id="tbl-laporan-breakdown-fakultas">
+                    <thead>
+                      <tr>
+                        <th style={{ width: '32px' }}></th>
+                        <th className="text-left">Bidang</th>
+                        <th style={{ width: '220px' }} className="text-left">Progress Rata-rata</th>
+                        <th style={{ width: '80px' }} className="text-center">%</th>
+                        <th style={{ width: '120px' }} className="text-center">Status Prodi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getBreakdownRowsFakultas().map(bidang => {
+                        const clr = pctColor(bidang.pct);
+                        const icon = bidang.allComplete
+                          ? <i className="fa-solid fa-circle-check" style={{ color: '#22c55e' }}></i>
+                          : <i className="fa-solid fa-circle-half-stroke" style={{ color: '#f97316' }}></i>;
+
+                        const isExpanded = !!expandedBidangs[bidang.id];
+
+                        return (
+                          <React.Fragment key={bidang.id}>
+                            <tr 
+                              className="lap-row-bidang" 
+                              onClick={() => toggleBidang(bidang.id)}
+                              style={{ cursor: 'pointer', transition: 'background-color 0.2s' }}
+                            >
+                              <td className="text-center">{icon}</td>
+                              <td className="text-left">
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                                  <strong>{bidang.code} — {bidang.name}</strong>
+                                  <i className={`fa-solid ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} style={{ color: 'var(--muted)', fontSize: '0.75rem' }}></i>
+                                </span>
+                              </td>
+                              <td>
+                                <div className="progress-bar-wrap">
+                                  <div className="progress-bar-fill" style={{ width: `${bidang.pct}%`, background: clr }}></div>
+                                </div>
+                              </td>
+                              <td className="text-center" style={{ color: clr, fontWeight: 700 }}>{bidang.pct}%</td>
+                              <td className="text-center" style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
+                                {bidang.allComplete 
+                                  ? <span style={{ color: '#22c55e', fontWeight: 600 }}>✓ Semua Prodi 100%</span>
+                                  : <span style={{ color: '#ef4444', fontWeight: 600 }}>{bidang.incompleteProdi.length} Prodi belum 100%</span>
+                                }
+                              </td>
+                            </tr>
+                            
+                            {isExpanded && bidang.incompleteProdi.map((ps) => {
+                              const psClr = pctColor(ps.pct);
+                              return (
+                                <tr key={ps.prodiCode} className="lap-row-iku" style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                  <td className="text-center">
+                                    <i className="fa-solid fa-triangle-exclamation" style={{ color: psClr, fontSize: '0.8rem' }}></i>
+                                  </td>
+                                  <td className="text-left" style={{ paddingLeft: '24px' }}>
+                                    <span style={{ color: 'var(--muted)', marginRight: '6px', fontWeight: 600 }}>{ps.prodiCode}</span>
+                                    {ps.prodiName}
+                                  </td>
+                                  <td>
+                                    <div className="progress-bar-wrap">
+                                      <div className="progress-bar-fill" style={{ width: `${ps.pct}%`, background: psClr }}></div>
+                                    </div>
+                                  </td>
+                                  <td className="text-center" style={{ color: psClr, fontWeight: 700 }}>{ps.pct}%</td>
+                                  <td className="text-center" style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+                                    {ps.filled}/{ps.total} IKU
+                                  </td>
+                                </tr>
+                              );
+                            })}
+
+                            {isExpanded && bidang.allComplete && (
+                              <tr className="lap-row-iku">
+                                <td></td>
+                                <td colSpan={4} className="text-left" style={{ paddingLeft: '24px', color: '#22c55e', fontSize: '0.82rem' }}>
+                                  <i className="fa-solid fa-check"></i> Semua Program Studi sudah 100% lengkap!
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : activeTab === 'rincian' ? (
                   <table className="htable" id="tbl-laporan-breakdown">
                     <thead>
                       <tr>
