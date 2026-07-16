@@ -1595,13 +1595,6 @@ export function SippApp() {
                 </div>
               )}
 
-              <div className="fg" style={{ marginTop: '12px' }}>
-                <label>Data Dukung (Link Drive)</label>
-                <div className="input-icon">
-                  <i className="fa-brands fa-google-drive c-green"></i>
-                  <input type="url" placeholder="https://drive.google.com/..." value={miDukung} onChange={(e) => setMiDukung(e.target.value)}/>
-                </div>
-              </div>
             </div>
             <div className="modal-ftr">
               <button className="btn btn-secondary" onClick={() => setActiveModal(null)}>Batal</button>

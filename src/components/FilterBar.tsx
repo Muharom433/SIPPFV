@@ -53,7 +53,6 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
     bannerTitle = 'Renstra - Capaian';
     bannerSub = 'Pantau capaian target indikator kinerja utama Renstra Anda untuk periode berjalan.';
     bannerLabel = 'Rencana Strategis';
-    addButtonLabel = 'Tambah Renstra';
   } else if (tab === 'pembelajaran') {
     bannerTitle = 'Pembelajaran';
     bannerSub = 'Kelola kurikulum, Capaian Pembelajaran Lulusan (CPL), dan standar mutu pembelajaran.';
