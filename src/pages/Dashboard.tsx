@@ -32,11 +32,16 @@ export function Dashboard() {
   // Year selector
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [isYearDropdownOpen, setIsYearDropdownOpen] = useState(false);
+  const yearDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (yearDropdownRef.current && !yearDropdownRef.current.contains(event.target as Node)) {
+        setIsYearDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -580,48 +585,111 @@ export function Dashboard() {
             </div>
           </div>
         </div>
-        <div style={{ zIndex: 2, minWidth: '220px', textAlign: 'center' }}>
-          {/* Year Picker — Styled Select */}
+        <div style={{ zIndex: 99, minWidth: '220px', textAlign: 'center' }} ref={yearDropdownRef}>
+          {/* Year Picker — Custom Select */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', color: '#ffffff', opacity: 0.9, fontWeight: 700 }}>Tahun Anggaran</div>
-            <div style={{ position: 'relative' }}>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(Number(e.target.value))}
+            <div style={{ position: 'relative', width: '100%', maxWidth: '200px' }}>
+              <button
+                type="button"
+                onClick={() => setIsYearDropdownOpen(!isYearDropdownOpen)}
                 style={{
-                  appearance: 'none',
-                  fontSize: '1.2rem',
+                  width: '100%',
+                  fontSize: '1.05rem',
                   fontWeight: 700,
                   color: '#1e3a8a',
                   background: '#ffffff',
-                  padding: '12px 40px 12px 20px',
+                  padding: '12px 36px 12px 20px',
                   borderRadius: '16px',
                   border: 'none',
                   boxShadow: '0 10px 25px -5px rgba(0,0,0,0.15)',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   outline: 'none',
-                  minWidth: '160px',
-                  textAlign: 'center'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap'
                 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f0f9ff'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#ffffff'; e.currentTarget.style.transform = 'none'; }}
+                onMouseEnter={e => { 
+                  e.currentTarget.style.background = '#f0f9ff'; 
+                  e.currentTarget.style.transform = 'translateY(-1px)'; 
+                }}
+                onMouseLeave={e => { 
+                  e.currentTarget.style.background = '#ffffff'; 
+                  e.currentTarget.style.transform = 'none'; 
+                }}
               >
-                {Array.from({ length: 11 }, (_, i) => currentYear - 5 + i).map(year => (
-                  <option key={year} value={year}>
-                    PERIODE {year}
-                  </option>
-                ))}
-              </select>
-              <i className="fa-solid fa-chevron-down" style={{ 
-                position: 'absolute', 
-                right: '16px', 
-                top: '50%', 
-                transform: 'translateY(-50%)', 
-                color: '#64748b', 
-                pointerEvents: 'none',
-                fontSize: '0.9rem'
-              }}></i>
+                <span>PERIODE {selectedYear}</span>
+                <i className="fa-solid fa-chevron-down" style={{ 
+                  fontSize: '0.85rem', 
+                  color: '#64748b',
+                  transition: 'transform 0.2s',
+                  transform: isYearDropdownOpen ? 'rotate(180deg)' : 'none'
+                }}></i>
+              </button>
+
+              {isYearDropdownOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '52px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '100%',
+                  minWidth: '170px',
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  boxShadow: '0 10px 30px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.1)',
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                  padding: '8px',
+                  zIndex: 999,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  maxHeight: '240px',
+                  overflowY: 'auto'
+                }}>
+                  {Array.from({ length: 11 }, (_, i) => currentYear - 5 + i).map(year => {
+                    const isSelected = selectedYear === year;
+                    return (
+                      <div
+                        key={year}
+                        onClick={() => {
+                          setSelectedYear(year);
+                          setIsYearDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '10px 16px',
+                          borderRadius: '12px',
+                          cursor: 'pointer',
+                          fontWeight: isSelected ? 700 : 500,
+                          fontSize: '0.9rem',
+                          background: isSelected ? '#eff6ff' : 'transparent',
+                          color: isSelected ? '#1e40af' : 'var(--text)',
+                          transition: 'all 0.15s',
+                          textAlign: 'center',
+                          userSelect: 'none'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.background = '#f1f5f9';
+                            e.currentTarget.style.color = '#1e3a8a';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text)';
+                          }
+                        }}
+                      >
+                        PERIODE {year}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>
