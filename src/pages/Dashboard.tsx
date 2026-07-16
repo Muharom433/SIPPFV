@@ -85,12 +85,14 @@ export function Dashboard() {
   // Auto-load: untuk user biasa (selectedProdi terisi) DAN untuk admin mode Fakultas
   useEffect(() => {
     if (isAdmin) {
-      // Admin: auto-load (Fakultas atau Prodi tertentu)
-      handleTampilkanLaporan();
+      // Tunggu sampai prodiLinks dimuat (tidak kosong) sebelum auto-load Laporan Fakultas
+      if (prodiLinks && prodiLinks.length > 0) {
+        handleTampilkanLaporan();
+      }
     } else if (selectedProdi) {
       handleTampilkanLaporan();
     }
-  }, [selectedProdi, isAdmin, selectedYear]);
+  }, [selectedProdi, isAdmin, selectedYear, prodiLinks]);
 
   // Reset data when year changes
   useEffect(() => {
