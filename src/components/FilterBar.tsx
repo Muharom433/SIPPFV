@@ -445,42 +445,51 @@ export function FilterBar({ onAddClick, onImportClick, onExportClick, onRefresh 
                   flexDirection: 'column',
                   gap: '4px'
                 }}>
-                  {Array.from({ length: 7 }, (_, i) => 2025 + i).map((yr) => (
-                    <div
-                      key={yr}
-                      onClick={() => {
-                        setFilterYear(yr);
-                        setIsYearDropdownOpen(false);
-                        onRefresh?.();
-                      }}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontWeight: filterYear === yr ? 600 : 500,
-                        fontSize: '0.85rem',
-                        background: filterYear === yr ? '#e0f2fe' : 'transparent',
-                        color: filterYear === yr ? '#0369a1' : 'var(--text)',
-                        transition: 'all 0.15s',
-                        display: 'flex',
-                        alignItems: 'center'
-                      }}
-                      onMouseEnter={(e) => {
-                        if (filterYear !== yr) {
-                          e.currentTarget.style.background = '#f1f5f9';
-                          e.currentTarget.style.color = '#0284c7';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (filterYear !== yr) {
-                          e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.color = 'var(--text)';
-                        }
-                      }}
-                    >
-                      {yr}
-                    </div>
-                  ))}
+                  {(() => {
+                    const currentYear = new Date().getFullYear();
+                    const startYear = Math.max(2025, currentYear - 3);
+                    const endYear = currentYear + 3;
+                    const years = [];
+                    for (let y = startYear; y <= endYear; y++) {
+                      years.push(y);
+                    }
+                    return years.map((yr) => (
+                      <div
+                        key={yr}
+                        onClick={() => {
+                          setFilterYear(yr);
+                          setIsYearDropdownOpen(false);
+                          onRefresh?.();
+                        }}
+                        style={{
+                          padding: '10px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontWeight: filterYear === yr ? 600 : 500,
+                          fontSize: '0.85rem',
+                          background: filterYear === yr ? '#e0f2fe' : 'transparent',
+                          color: filterYear === yr ? '#0369a1' : 'var(--text)',
+                          transition: 'all 0.15s',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (filterYear !== yr) {
+                            e.currentTarget.style.background = '#f1f5f9';
+                            e.currentTarget.style.color = '#0284c7';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (filterYear !== yr) {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = 'var(--text)';
+                          }
+                        }}
+                      >
+                        {yr}
+                      </div>
+                    ));
+                  })()}
                 </div>
               )}
             </div>

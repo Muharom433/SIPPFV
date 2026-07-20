@@ -652,44 +652,52 @@ export function Dashboard() {
                   maxHeight: '240px',
                   overflowY: 'auto'
                 }}>
-                  {Array.from({ length: 11 }, (_, i) => currentYear - 5 + i).map(year => {
-                    const isSelected = selectedYear === year;
-                    return (
-                      <div
-                        key={year}
-                        onClick={() => {
-                          setSelectedYear(year);
-                          setIsYearDropdownOpen(false);
-                        }}
-                        style={{
-                          padding: '10px 16px',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          fontWeight: isSelected ? 700 : 500,
-                          fontSize: '0.9rem',
-                          background: isSelected ? '#eff6ff' : 'transparent',
-                          color: isSelected ? '#1e40af' : 'var(--text)',
-                          transition: 'all 0.15s',
-                          textAlign: 'center',
-                          userSelect: 'none'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.background = '#f1f5f9';
-                            e.currentTarget.style.color = '#1e3a8a';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = 'var(--text)';
-                          }
-                        }}
-                      >
-                        PERIODE {year}
-                      </div>
-                    );
-                  })}
+                  {(() => {
+                    const startYear = Math.max(2025, currentYear - 3);
+                    const endYear = currentYear + 3;
+                    const years = [];
+                    for (let y = startYear; y <= endYear; y++) {
+                      years.push(y);
+                    }
+                    return years.map(year => {
+                      const isSelected = selectedYear === year;
+                      return (
+                        <div
+                          key={year}
+                          onClick={() => {
+                            setSelectedYear(year);
+                            setIsYearDropdownOpen(false);
+                          }}
+                          style={{
+                            padding: '10px 16px',
+                            borderRadius: '12px',
+                            cursor: 'pointer',
+                            fontWeight: isSelected ? 700 : 500,
+                            fontSize: '0.9rem',
+                            background: isSelected ? '#eff6ff' : 'transparent',
+                            color: isSelected ? '#1e40af' : 'var(--text)',
+                            transition: 'all 0.15s',
+                            textAlign: 'center',
+                            userSelect: 'none'
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.background = '#f1f5f9';
+                              e.currentTarget.style.color = '#1e3a8a';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = 'var(--text)';
+                            }
+                          }}
+                        >
+                          PERIODE {year}
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>
