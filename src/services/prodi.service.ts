@@ -1,24 +1,85 @@
 import { supabase } from '../lib/supabase';
 import type { ProdiDriveLink } from '../types';
 
-export async function getProdiLinks(role: string, username: string): Promise<ProdiDriveLink[]> {
-  let query = supabase
-    .from('prodi_drive_links')
-    .select('*, departemen(id, kode_departemen, nama_departemen)')
-    .order('prodi_name', { ascending: true });
+const VOKASI_CODES = ['ADP', 'AKT', 'MP', 'PUR', 'PTI', 'PROMKES', 'BOGA', 'BUSANA', 'RIAS', 'ELKO', 'ELKA', 'MESIN', 'OTO', 'SIPIL'];
 
-  if (role !== 'admin') {
-    const { data: user } = await supabase.from('users').select('prodi_code').eq('username', username).single();
-    if (user && user.prodi_code) {
-      query = query.eq('prodi_code', user.prodi_code);
-    } else {
-      return [];
+const DEFAULT_14_PRODIS: { code: string; name: string }[] = [
+  { code: 'ADP', name: 'Administrasi Perkantoran' },
+  { code: 'AKT', name: 'Akuntansi' },
+  { code: 'MP', name: 'Manajemen Pemasaran' },
+  { code: 'PUR', name: 'Pengelolaan Usaha Rekreasi' },
+  { code: 'PTI', name: 'Pengobatan Tradisional Indonesia' },
+  { code: 'PROMKES', name: 'Promosi Kesehatan' },
+  { code: 'BOGA', name: 'Tata Boga' },
+  { code: 'BUSANA', name: 'Tata Busana' },
+  { code: 'RIAS', name: 'Tata Rias dan Kecantikan' },
+  { code: 'ELKO', name: 'Teknik Elektro' },
+  { code: 'ELKA', name: 'Teknik Elektronika' },
+  { code: 'MESIN', name: 'Teknik Mesin' },
+  { code: 'OTO', name: 'Teknik Otomotif' },
+  { code: 'SIPIL', name: 'Teknik Sipil' }
+];
+
+export async function getProdiLinks(role: string, prodiCode?: string | null): Promise<ProdiDriveLink[]> {
+  try {
+    // Priority 1: Query directly from master table study_programs (SIMPEL)
+    const { data: simpelProdis, error: spError } = await supabase
+      .from('study_programs')
+      .select('*')
+      .in('code', VOKASI_CODES)
+      .order('name', { ascending: true });
+
+    if (!spError && simpelProdis && simpelProdis.length > 0) {
+      // Map to ProdiDriveLink interface
+      const list: ProdiDriveLink[] = simpelProdis.map((sp, idx) => ({
+        id: idx + 1,
+        prodi_name: sp.name,
+        prodi_code: sp.code, // Kode resmi SIMPEL (ADP, AKT, ELKO, dll)
+        departemen_id: null,
+        link_perjanjian_kinerja: '',
+        link_template_kinerja: '',
+        link_tw1: '',
+        link_tw2: '',
+        link_bukti_dukung_tw1: '',
+        link_bukti_lama: '',
+        link_contoh_target: '',
+        keterangan: '',
+        updated_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      }));
+
+      if (role !== 'admin' && prodiCode) {
+        return list.filter(p => p.prodi_code.toLowerCase() === prodiCode.toLowerCase());
+      }
+      return list;
     }
+  } catch {
+    // Continue to fallback if study_programs fetch fails
   }
 
-  const { data, error } = await query;
-  if (error) throw new Error(error.message);
-  return (data || []) as ProdiDriveLink[];
+  // Fallback: Default 14 Vokasi prodis with official SIMPEL codes
+  const list: ProdiDriveLink[] = DEFAULT_14_PRODIS.map((p, idx) => ({
+    id: idx + 1,
+    prodi_name: p.name,
+    prodi_code: p.code,
+    departemen_id: null,
+    link_perjanjian_kinerja: '',
+    link_template_kinerja: '',
+    link_tw1: '',
+    link_tw2: '',
+    link_bukti_dukung_tw1: '',
+    link_bukti_lama: '',
+    link_contoh_target: '',
+    keterangan: '',
+    updated_at: new Date().toISOString(),
+    created_at: new Date().toISOString()
+  }));
+
+  if (role !== 'admin' && prodiCode) {
+    return list.filter(p => p.prodi_code.toLowerCase() === prodiCode.toLowerCase());
+  }
+
+  return list;
 }
 
 export async function getProdiLink(id: number): Promise<ProdiDriveLink> {
@@ -51,22 +112,6 @@ export async function createProdiLink(body: Partial<ProdiDriveLink>): Promise<{ 
 
   if (error) throw new Error(error.message);
 
-  // Auto-create user for new prodi
-  const newUsername = body.prodi_code.toLowerCase();
-  const { data: existingUser } = await supabase.from('users')
-    .select('id')
-    .eq('username', newUsername)
-    .maybeSingle();
-
-  if (!existingUser) {
-    await supabase.from('users').insert([{
-      username: newUsername,
-      password: 'vokasi123',
-      role: 'user',
-      prodi_code: body.prodi_code
-    }]);
-  }
-
   return { id: data![0].id };
 }
 
@@ -95,11 +140,6 @@ export async function updateProdiLink(id: number, body: any, role: string): Prom
 }
 
 export async function deleteProdiLink(id: number): Promise<void> {
-  const { data: prodi } = await supabase.from('prodi_drive_links').select('prodi_code').eq('id', id).single();
-  if (!prodi) throw new Error('Prodi tidak ditemukan.');
-
   const { error } = await supabase.from('prodi_drive_links').delete().eq('id', id);
   if (error) throw new Error(error.message);
-
-  await supabase.from('users').delete().eq('prodi_code', prodi.prodi_code);
 }

@@ -2,12 +2,16 @@ import { supabase } from '../lib/supabase';
 import type { Departemen } from '../types';
 
 export async function getDepartemen(): Promise<Departemen[]> {
-  const { data, error } = await supabase
-    .from('departemen')
-    .select('*')
-    .order('kode_departemen', { ascending: true });
-  if (error) throw new Error(error.message);
-  return (data || []) as Departemen[];
+  try {
+    const { data, error } = await supabase
+      .from('departemen')
+      .select('*')
+      .order('kode_departemen', { ascending: true });
+    if (error) return [];
+    return (data || []) as Departemen[];
+  } catch {
+    return [];
+  }
 }
 
 export async function createDepartemen(kode_departemen: string, nama_departemen: string): Promise<{ id: number }> {

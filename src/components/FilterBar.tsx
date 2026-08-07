@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth, useApp } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useApp } from '../contexts/AppContext';
 
 interface FilterBarProps {
   onAddClick?: () => void;

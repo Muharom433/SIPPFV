@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth, useApp } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
+import { useApp } from './contexts/AppContext';
 import Swal from 'sweetalert2';
 
 import { getItems, createItem, updateItem, updateDriveLink, importRenstra } from './services/items.service';
@@ -33,6 +34,7 @@ export function SippApp() {
   const { user, login } = useAuth();
   const {
     tab,
+    setTab,
     filterYear,
     filterTriwulan,
     filterProdi,
@@ -44,6 +46,14 @@ export function SippApp() {
 
   const isAdmin = user?.role === 'admin';
   const importInputRef = useRef<HTMLInputElement>(null);
+
+  // Role Access Guard: Redirect non-admin users to dashboard if on admin-only tabs
+  useEffect(() => {
+    const adminOnlyTabs = ['manajemen-user', 'manajemen-prodi', 'manajemen-departemen', 'rka-data', 'rka-rpd', 'pembelian', 'pembelajaran', 'laporan', 'renstra-tanggung'];
+    if (user && user.role !== 'admin' && adminOnlyTabs.includes(tab)) {
+      setTab('dashboard');
+    }
+  }, [user, tab, setTab]);
 
   // Login page inputs
   const [loginUsername, setLoginUsername] = useState('');
@@ -172,7 +182,7 @@ export function SippApp() {
         const data = await getPurchases();
         setPurchases(data);
       } else if (tab === 'manajemen-prodi') {
-        const data = await getProdiLinks(user.role, user.username);
+        const data = await getProdiLinks(user.role, user.prodi_code);
         setProdiLinks(data);
       } else if (tab === 'manajemen-departemen') {
         const data = await getDepartemen();
@@ -192,14 +202,17 @@ export function SippApp() {
     async function loadConfig() {
       if (!user) return;
       try {
-        const [prodis, depts] = await Promise.all([
-          getProdiLinks(user.role, user.username),
-          getDepartemen()
-        ]);
+        const prodis = await getProdiLinks(user.role, user.prodi_code);
         setProdiLinks(prodis);
+      } catch (err) {
+        console.error('Prodi links fetch failed:', err);
+      }
+
+      try {
+        const depts = await getDepartemen();
         setDepartemen(depts);
       } catch (err) {
-        console.error('Config fetch failed:', err);
+        console.error('Departemen fetch failed:', err);
       }
     }
     loadConfig();
@@ -272,7 +285,7 @@ export function SippApp() {
               <input 
                 type="text" 
                 id="login-username" 
-                placeholder="Username (misal: d4-ts)..." 
+                placeholder="Username..." 
                 required
                 value={loginUsername}
                 onChange={(e) => setLoginUsername(e.target.value)}

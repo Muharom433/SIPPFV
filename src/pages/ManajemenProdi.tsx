@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useApp } from '../contexts/AuthContext';
+import { useApp } from '../contexts/AppContext';
 import { deleteProdiLink } from '../services/prodi.service';
 import Swal from 'sweetalert2';
 

@@ -1,8 +1,8 @@
-import { useApp } from '../contexts/AuthContext';
-import { rupiah, fmtNum, buildTree } from '../utils/helpers';
 import { useAuth } from '../contexts/AuthContext';
+import { useApp } from '../contexts/AppContext';
 import { useEffect, useState } from 'react';
 import { getItems } from '../services/items.service';
+import { rupiah, fmtNum, buildTree } from '../utils/helpers';
 
 const SIDEBAR_CSS = `
   .sidebar {
@@ -276,12 +276,6 @@ export function Sidebar() {
               <i className="fa-solid fa-chevron-down caret"></i>
             </div>
             <ul className="nav-sub">
-              <li className={tab === 'manajemen-prodi' ? 'active' : ''} onClick={() => handleTabClick('manajemen-prodi')}>
-                <a href="#" onClick={(e) => e.preventDefault()}>Manajemen Prodi</a>
-              </li>
-              <li className={tab === 'manajemen-departemen' ? 'active' : ''} onClick={() => handleTabClick('manajemen-departemen')}>
-                <a href="#" onClick={(e) => e.preventDefault()}>Manajemen Departemen</a>
-              </li>
               <li className={tab === 'manajemen-user' ? 'active' : ''} onClick={() => handleTabClick('manajemen-user')}>
                 <a href="#" onClick={(e) => e.preventDefault()}>Manajemen User</a>
               </li>

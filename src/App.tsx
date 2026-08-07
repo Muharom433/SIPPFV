@@ -1,4 +1,5 @@
-import { AuthProvider, AppProvider } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { AppProvider } from './contexts/AppContext';
 import { SippApp } from './SippApp';
 
 function App() {

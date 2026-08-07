@@ -1,4 +1,5 @@
-import { useAuth, useApp } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useApp } from '../contexts/AppContext';
 import Swal from 'sweetalert2';
 
 
@@ -18,7 +19,7 @@ const TAB_CONFIG: Record<string, { title: string }> = {
 
 export function Topbar() {
   const { user, logout } = useAuth();
-  const { tab, toggleSidebar, isMobile } = useApp();
+  const { tab, setTab, toggleSidebar, isMobile } = useApp();
 
   const currentTabConfig = TAB_CONFIG[tab] || { title: tab };
 
@@ -34,28 +35,31 @@ export function Topbar() {
       cancelButtonText: 'Batal'
     }).then((result) => {
       if (result.isConfirmed) {
+        setTab('dashboard');
         logout();
       }
     });
   };
 
-
   const getAvatarText = () => {
     if (!user) return 'US';
     if (user.role === 'admin') return 'SA';
-    return user.prodi_code ? user.prodi_code.replace('D4-', '').replace('D3-', '') : 'US';
+    let raw = user.prodi_code || user.username || '';
+    raw = raw.replace(/^D[34]-/i, '').replace(/^d[34]-/i, '').trim().toUpperCase();
+    if (!raw) return 'PR';
+    return raw.length <= 3 ? raw : raw.substring(0, 3);
   };
 
   const getDisplayName = () => {
     if (!user) return '';
-    if (user.role === 'admin') return 'Superadmin';
-    return user.prodi_name || user.username.toUpperCase();
+    if (user.role === 'admin') return user.full_name || 'Superadmin';
+    return user.prodi_name || user.full_name || user.username.toUpperCase();
   };
 
   const getRoleText = () => {
     if (!user) return '';
     if (user.role === 'admin') return 'Administrator';
-    return `User Prodi (${user.prodi_code})`;
+    return `Prodi ${user.prodi_code || user.username.toUpperCase() || ''}`;
   };
 
   return (
@@ -79,7 +83,14 @@ export function Topbar() {
             className="user-avatar" 
             id="user-avatar"
             style={{
-              background: user?.role === 'admin' ? 'var(--accent)' : 'var(--blue)'
+              background: user?.role === 'admin' ? 'var(--accent)' : 'var(--blue)',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              fontSize: '0.75rem',
+              lineHeight: 1,
+              padding: '0 4px',
+              boxSizing: 'border-box'
             }}
           >
             {getAvatarText()}

@@ -3,12 +3,21 @@
    ═══════════════════════════════════════════════ */
 
 export interface User {
-  id: number;
-  username: string;
-  role: 'admin' | 'user';
-  prodi_code: string | null;
+  // Data dari tabel SIGAP (otorisasi khusus SIGAP)
+  id: string;                    // uuid dari tabel SIGAP
+  username: string;              // username di tabel SIGAP
+  role: 'admin' | 'prodi';      // role di SIGAP
+  id_prodi: string | null;      // FK ke study_programs
+  id_user: string | null;       // FK ke users (SIMPEL)
+
+  // Data JOIN dari tabel users (SIMPEL) — profil lengkap
+  full_name?: string | null;
+  email?: string | null;
+  identity_number?: string | null;
+
+  // Data JOIN dari tabel study_programs (SIMPEL) — data prodi
   prodi_name?: string | null;
-  password?: string;
+  prodi_code?: string | null;   // kode prodi (misal D4-TI) dari study_programs
 }
 
 export interface AuthSession {

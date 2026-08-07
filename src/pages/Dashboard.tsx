@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useAuth, useApp } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useApp } from '../contexts/AppContext';
 import { getItems } from '../services/items.service';
 import { getRenstraProgress } from '../services/renstra.service';
 import { buildTree } from '../utils/helpers';
