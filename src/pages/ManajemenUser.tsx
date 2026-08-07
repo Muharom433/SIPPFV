@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { getUsers, createUser, updateUser, deleteUser, getSimpelUsers, getStudyPrograms } from '../services/user.service';
 import type { SimpelUser, StudyProgram } from '../services/user.service';
-import { useApp } from '../contexts/AppContext';
 import type { User } from '../types';
 import Swal from 'sweetalert2';
 
@@ -88,7 +87,6 @@ const SEARCHABLE_CSS = `
 
 
 export function ManajemenUser() {
-  const { prodiLinks } = useApp();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
